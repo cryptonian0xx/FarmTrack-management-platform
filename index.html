@@ -899,6 +899,59 @@ textarea.form-control { resize:vertical; min-height:80px; }
   .stat-value { font-size:22px; }
   .media-grid { grid-template-columns: repeat(2,1fr); }
 }
+
+/* ── NOTIFICATION BANNER ── */
+#notif-banner {
+  position: fixed;
+  top: -120px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 9998;
+  min-width: 320px;
+  max-width: 560px;
+  width: calc(100vw - 2rem);
+  border-radius: var(--radius);
+  padding: 14px 16px 14px 18px;
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  box-shadow: var(--shadow-lg);
+  transition: top 0.45s cubic-bezier(0.34,1.56,0.64,1);
+  overflow: hidden;
+}
+#notif-banner.show { top: 16px; }
+#notif-banner.type-announcement { background: linear-gradient(135deg, #1B5E20, #2E7D32); color: white; }
+#notif-banner.type-info         { background: linear-gradient(135deg, #0D47A1, #1565C0); color: white; }
+#notif-banner.type-warning      { background: linear-gradient(135deg, #E65100, #F57C00); color: white; }
+#notif-banner.type-success      { background: linear-gradient(135deg, #1B5E20, #388E3C); color: white; }
+.notif-banner-icon  { font-size: 22px; flex-shrink: 0; margin-top: 1px; }
+.notif-banner-body  { flex: 1; }
+.notif-banner-label { font-size: 10px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; opacity: 0.75; margin-bottom: 3px; }
+.notif-banner-text  { font-size: 14px; line-height: 1.45; font-weight: 500; }
+.notif-banner-close {
+  background: rgba(255,255,255,0.2); border: none; color: white;
+  border-radius: 6px; padding: 4px 8px; cursor: pointer;
+  font-size: 14px; flex-shrink: 0; transition: var(--transition);
+}
+.notif-banner-close:hover { background: rgba(255,255,255,0.35); }
+.notif-banner-progress {
+  position: absolute; bottom: 0; left: 0;
+  height: 3px; background: rgba(255,255,255,0.45);
+  border-radius: 0 0 var(--radius) var(--radius);
+}
+/* Bell badge in sidebar */
+.notif-bell-badge {
+  margin-left: auto;
+  background: var(--danger);
+  color: white;
+  font-size: 10px; font-weight: 700;
+  padding: 2px 6px; border-radius: 10px;
+  animation: pulse 1.5s ease-in-out infinite;
+}
+@keyframes pulse {
+  0%,100% { opacity:1; transform:scale(1); }
+  50%      { opacity:0.7; transform:scale(1.1); }
+}
 </style>
 </head>
 <body>
@@ -1014,6 +1067,19 @@ textarea.form-control { resize:vertical; min-height:80px; }
 </div>
 
 <!-- ══════════════════════════════════════════════════════════
+     NOTIFICATION BANNER
+══════════════════════════════════════════════════════════ -->
+<div id="notif-banner" role="alert" aria-live="polite">
+  <div class="notif-banner-icon" id="notif-icon">📢</div>
+  <div class="notif-banner-body">
+    <div class="notif-banner-label" id="notif-label">FarmTrack Pro</div>
+    <div class="notif-banner-text" id="notif-text"></div>
+  </div>
+  <button class="notif-banner-close" onclick="dismissNotification()" aria-label="Dismiss">&times;</button>
+  <div class="notif-banner-progress" id="notif-progress" style="width:100%;"></div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════
      LOADING OVERLAY
 ══════════════════════════════════════════════════════════ -->
 <div class="loading-overlay" id="loading-overlay">
@@ -1097,6 +1163,10 @@ textarea.form-control { resize:vertical; min-height:80px; }
           <div class="user-email" id="sidebar-user-email">-</div>
         </div>
         <div class="sidebar-user-actions">
+          <button onclick="event.stopPropagation();toggleNotifPanel()" title="Notifications" id="bell-btn" style="position:relative;">
+            <i class="fas fa-bell"></i>
+            <span class="notif-bell-badge" id="bell-badge" style="display:none;position:absolute;top:-4px;right:-4px;">0</span>
+          </button>
           <button onclick="event.stopPropagation();logout()" title="Logout"><i class="fas fa-sign-out-alt"></i></button>
         </div>
       </div>
@@ -2405,6 +2475,8 @@ async function initApp() {
   setDashboardGreeting();
   refreshDashboard();
   refreshWeather();
+  // Fetch and display any unread notifications for this user/farm
+  fetchNotifications();
 }
 
 async function loadAllData() {
@@ -4670,6 +4742,127 @@ document.addEventListener('click', e => {
     });
   }
 });
+
+// ═══════════════════════════════════════════════════════════
+// NOTIFICATIONS
+// ═══════════════════════════════════════════════════════════
+
+let _notifQueue   = [];   // unread notifications waiting to show
+let _notifTimer   = null; // auto-dismiss timer
+let _notifPanel   = false;// notification panel open state
+let _shownNotifs  = [];   // IDs shown this session (avoid re-showing)
+
+// Called after every successful login
+async function fetchNotifications() {
+  if (!STATE.user?.UserID || !STATE.farm?.FarmID) return;
+  try {
+    // Use Apps Script doGet — OpenSheet doesn't support this query
+    const url = `${APPS_SCRIPT}?action=getNotifications&farmID=${encodeURIComponent(STATE.farm.FarmID)}&userID=${encodeURIComponent(STATE.user.UserID)}`;
+    const r = await fetch(url);
+    if (!r.ok) return;
+    const notifs = await r.json();
+    if (!Array.isArray(notifs) || !notifs.length) return;
+
+    // Filter out anything shown this session
+    _notifQueue = notifs.filter(n => !_shownNotifs.includes(n.NotificationID));
+    updateBellBadge(_notifQueue.length);
+    if (_notifQueue.length) showNextNotification();
+  } catch(e) {
+    console.warn('fetchNotifications error:', e.message);
+  }
+}
+
+function updateBellBadge(count) {
+  const badge = document.getElementById('bell-badge');
+  if (!badge) return;
+  if (count > 0) {
+    badge.textContent = count;
+    badge.style.display = '';
+  } else {
+    badge.style.display = 'none';
+  }
+}
+
+function showNextNotification() {
+  if (!_notifQueue.length) return;
+  const notif = _notifQueue[0]; // show oldest first
+  showNotificationBanner(notif);
+}
+
+const TYPE_ICONS = {
+  announcement: '📢',
+  info:         'ℹ️',
+  warning:      '⚠️',
+  success:      '✅',
+};
+
+function showNotificationBanner(notif) {
+  const banner   = document.getElementById('notif-banner');
+  const iconEl   = document.getElementById('notif-icon');
+  const labelEl  = document.getElementById('notif-label');
+  const textEl   = document.getElementById('notif-text');
+  const progress = document.getElementById('notif-progress');
+
+  const type = notif.Type || 'announcement';
+  iconEl.textContent  = TYPE_ICONS[type] || '📢';
+  labelEl.textContent = 'FarmTrack Pro · ' + (type.charAt(0).toUpperCase() + type.slice(1));
+  textEl.textContent  = notif.Message || '';
+
+  // Remove all type classes, add correct one
+  banner.className = '';
+  banner.id = 'notif-banner';
+  banner.classList.add('show', 'type-' + type);
+
+  // Store current notif ID on banner for dismiss
+  banner.dataset.notifId = notif.NotificationID;
+
+  // Progress bar animation (10 seconds)
+  if (progress) {
+    progress.style.transition = 'none';
+    progress.style.width = '100%';
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => {
+        progress.style.transition = 'width 10s linear';
+        progress.style.width = '0%';
+      });
+    });
+  }
+
+  if (_notifTimer) clearTimeout(_notifTimer);
+  _notifTimer = setTimeout(() => dismissNotification(true), 10000);
+}
+
+function dismissNotification(auto = false) {
+  const banner = document.getElementById('notif-banner');
+  const notifID = banner?.dataset?.notifId;
+
+  // Hide banner
+  banner.classList.remove('show');
+  if (_notifTimer) { clearTimeout(_notifTimer); _notifTimer = null; }
+
+  if (notifID) {
+    // Mark read in sheet (fire and forget)
+    asPost({ action: 'markNotificationRead', notificationID: notifID, userID: STATE.user?.UserID });
+    // Remove from queue
+    _shownNotifs.push(notifID);
+    _notifQueue = _notifQueue.filter(n => n.NotificationID !== notifID);
+    updateBellBadge(_notifQueue.length);
+  }
+
+  // Show next notification after a short gap if any remain
+  if (_notifQueue.length) {
+    setTimeout(showNextNotification, 1500);
+  }
+}
+
+// Bell icon click — show all pending notifications one by one
+function toggleNotifPanel() {
+  if (_notifQueue.length) {
+    showNextNotification();
+  } else {
+    toast('No new notifications', 'success', 2000);
+  }
+}
 
 // ═══════════════════════════════════════════════════════════
 // INIT
