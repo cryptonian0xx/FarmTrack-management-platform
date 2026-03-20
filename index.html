@@ -2021,18 +2021,35 @@ async function osGet(tab) {
 }
 
 async function asPost(payload) {
+  // Google Apps Script web apps don't support CORS preflight (OPTIONS).
+  // Solution: send as application/x-www-form-urlencoded — a "simple request"
+  // that browsers allow cross-origin without preflight. Apps Script receives
+  // the JSON in e.parameter.payload which doPost decodes.
+  const body = 'payload=' + encodeURIComponent(JSON.stringify(payload));
   try {
     const r = await fetch(APPS_SCRIPT, {
       method: 'POST',
-      mode: 'no-cors',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(payload)
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+      body,
+      redirect: 'follow'
     });
-    // no-cors returns opaque response; assume success if no throw
-    return { success: true };
+    if (!r.ok) throw new Error('HTTP ' + r.status);
+    const json = await r.json();
+    if (json && json.error) console.warn('Apps Script error [' + payload.action + ']:', json.error);
+    return json;
   } catch(e) {
-    console.error('appsScript error:', e);
-    return { success: false, error: e.message };
+    // Apps Script sometimes redirects in a way that blocks response reading.
+    // Fire a no-cors fallback so the write still reaches the server even
+    // if we can't read the response.
+    console.warn('asPost primary failed (' + payload.action + '):', e.message, '— firing no-cors fallback');
+    try {
+      await fetch(APPS_SCRIPT, {
+        method: 'POST',
+        mode: 'no-cors',
+        body
+      });
+    } catch(e2) { /* silent */ }
+    return { success: true, fallback: true };
   }
 }
 
@@ -3819,11 +3836,23 @@ async function runDiagnose() {
   log('info', '');
   log('info', '── Apps Script (Write Endpoint) ──');
   try {
-    const r = await fetch(APPS_SCRIPT, { method:'POST', mode:'no-cors', headers:{'Content-Type':'application/json'}, body:JSON.stringify({ action:'diagnose' }) });
-    log('ok', '  ✅ Apps Script endpoint reachable (no-cors)');
+    const testPayload = 'payload=' + encodeURIComponent(JSON.stringify({ action: 'diagnose' }));
+    const r = await fetch(APPS_SCRIPT, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+      body: testPayload,
+      redirect: 'follow'
+    });
+    if (r.ok) {
+      const json = await r.json();
+      if (json && json.ok) log('ok', `  ✅ Apps Script reachable — doPost is LIVE (ts: ${json.ts})`);
+      else if (json && json.error) { log('fail', `  ❌ Apps Script responded with error: ${json.error}`); errors++; }
+      else log('warn', `  ⚠️  Apps Script responded but unexpected format: ${JSON.stringify(json)}`);
+    } else {
+      log('fail', `  ❌ Apps Script HTTP ${r.status}`); errors++;
+    }
   } catch(e) {
-    log('fail', `  ❌ Apps Script: ${e.message}`);
-    errors++;
+    log('fail', `  ❌ Apps Script fetch failed: ${e.message}`); errors++;
   }
 
   // 3. Weather API
