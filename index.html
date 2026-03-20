@@ -1458,6 +1458,7 @@ textarea.form-control { resize:vertical; min-height:80px; }
           <div class="page-header-actions">
             <button class="btn btn-outline" id="draw-field-btn" onclick="startDrawing()"><i class="fas fa-draw-polygon"></i> Draw Field</button>
             <button class="btn btn-primary" id="save-map-btn" onclick="saveDrawnBoundary()" disabled><i class="fas fa-save"></i> Save Boundary</button>
+            <button class="btn btn-accent btn-sm" onclick="pinMyLocation()"><i class="fas fa-crosshairs"></i> Pin My Location</button>
             <button class="btn btn-secondary btn-sm" onclick="resetMapView()"><i class="fas fa-redo"></i> Reset View</button>
           </div>
         </div>
@@ -1535,32 +1536,32 @@ textarea.form-control { resize:vertical; min-height:80px; }
       <!-- ▓▓▓ SETTINGS ▓▓▓ -->
       <section class="section" id="section-settings">
         <div class="page-header">
-          <div class="page-header-left"><h2>Settings</h2><p class="page-subtitle">Manage your profile and farm preferences</p></div>
+          <div class="page-header-left"><h2>Settings</h2><p class="page-subtitle">Manage your profile, farm details and preferences</p></div>
+          <div class="page-header-actions">
+            <button class="btn btn-primary" onclick="saveAllSettings()"><i class="fas fa-save"></i> Save All Changes</button>
+          </div>
         </div>
         <div class="grid-2">
           <div>
             <div class="card" style="margin-bottom:16px;">
               <div class="card-header"><h3>Personal Profile</h3></div>
-              <div class="settings-section">
-                <div class="form-group">
-                  <label>Display Name</label>
-                  <input type="text" id="setting-name" class="form-control">
-                </div>
-                <div class="form-group">
-                  <label>Email (read-only)</label>
-                  <input type="email" id="setting-email" class="form-control" readonly style="background:var(--surface2);">
-                </div>
-                <div class="form-group">
-                  <label>Phone Number</label>
-                  <input type="tel" id="setting-phone" class="form-control">
-                </div>
-                <button class="btn btn-primary btn-sm" onclick="saveUserProfile()"><i class="fas fa-save"></i> Save Profile</button>
+              <div class="form-group">
+                <label>Display Name</label>
+                <input type="text" id="setting-name" class="form-control">
+              </div>
+              <div class="form-group">
+                <label>Email (read-only)</label>
+                <input type="email" id="setting-email" class="form-control" readonly style="background:var(--surface2);">
+              </div>
+              <div class="form-group">
+                <label>Phone Number</label>
+                <input type="tel" id="setting-phone" class="form-control">
               </div>
             </div>
-            <div class="card">
+            <div class="card" style="margin-bottom:16px;">
               <div class="card-header"><h3>Preferences</h3></div>
               <div class="settings-row">
-                <div><div class="settings-row" style="border:none;padding:0;"><label>Currency Symbol</label></div><div class="sub">Used throughout the app</div></div>
+                <div><label>Currency Symbol</label><div class="sub">Used throughout the app</div></div>
                 <input type="text" id="setting-currency" class="form-control" style="max-width:80px;">
               </div>
               <div class="settings-row">
@@ -1572,49 +1573,6 @@ textarea.form-control { resize:vertical; min-height:80px; }
               <div class="settings-row">
                 <div><label>Task Notifications</label><div class="sub">Remind on task due dates</div></div>
                 <label class="toggle"><input type="checkbox" id="setting-notify-tasks" checked><div class="toggle-track"><div class="toggle-thumb"></div></div></label>
-              </div>
-              <button class="btn btn-primary btn-sm" style="margin-top:14px;" onclick="savePreferences()"><i class="fas fa-save"></i> Save Preferences</button>
-            </div>
-          </div>
-          <div>
-            <div class="card" style="margin-bottom:16px;">
-              <div class="card-header"><h3>Farm Details</h3></div>
-              <div class="settings-section">
-                <div class="form-group">
-                  <label>Farm Name</label>
-                  <input type="text" id="setting-farm-name" class="form-control">
-                </div>
-                <div class="form-group">
-                  <label>Farm Type</label>
-                  <select id="setting-farm-type" class="form-control">
-                    <option value="mixed">Mixed</option><option value="crop">Crop</option>
-                    <option value="livestock">Livestock</option><option value="poultry">Poultry</option>
-                    <option value="aqua">Aquaculture</option>
-                  </select>
-                </div>
-                <div class="form-group">
-                  <label>Farm Location</label>
-                  <input type="text" id="setting-farm-location" class="form-control">
-                </div>
-                <div class="form-row">
-                  <div class="form-group">
-                    <label>Latitude</label>
-                    <input type="number" step="any" id="setting-lat" class="form-control">
-                  </div>
-                  <div class="form-group">
-                    <label>Longitude</label>
-                    <input type="number" step="any" id="setting-lng" class="form-control">
-                  </div>
-                </div>
-                <div class="form-group">
-                  <label>Farm Size (acres)</label>
-                  <input type="number" id="setting-farm-size" class="form-control">
-                </div>
-                <div class="form-group">
-                  <label>Description</label>
-                  <textarea id="setting-farm-desc" class="form-control" rows="3"></textarea>
-                </div>
-                <button class="btn btn-primary btn-sm" onclick="saveFarmDetails()"><i class="fas fa-save"></i> Save Farm Details</button>
               </div>
             </div>
             <div class="card">
@@ -1628,6 +1586,66 @@ textarea.form-control { resize:vertical; min-height:80px; }
               </div>
             </div>
           </div>
+          <div>
+            <div class="card" style="margin-bottom:16px;">
+              <div class="card-header"><h3>Farm Details</h3></div>
+              <div class="form-group">
+                <label>Farm Name</label>
+                <input type="text" id="setting-farm-name" class="form-control">
+              </div>
+              <div class="form-row">
+                <div class="form-group">
+                  <label>Farm Type</label>
+                  <select id="setting-farm-type" class="form-control">
+                    <option value="mixed">Mixed</option><option value="crop">Crop</option>
+                    <option value="livestock">Livestock</option><option value="poultry">Poultry</option>
+                    <option value="aqua">Aquaculture</option>
+                  </select>
+                </div>
+                <div class="form-group">
+                  <label>Farm Size (acres)</label>
+                  <input type="number" id="setting-farm-size" class="form-control">
+                </div>
+              </div>
+              <div class="form-group">
+                <label>Description</label>
+                <textarea id="setting-farm-desc" class="form-control" rows="2"></textarea>
+              </div>
+            </div>
+            <div class="card">
+              <div class="card-header"><h3><i class="fas fa-map-marker-alt" style="color:var(--primary);"></i> Farm Location &amp; GPS</h3></div>
+              <div class="form-group">
+                <label>Farm Location (city / state)</label>
+                <div style="display:flex;gap:8px;">
+                  <input type="text" id="setting-farm-location" class="form-control" placeholder="e.g. Kaduna State, Nigeria">
+                  <button class="btn btn-outline btn-sm" onclick="geocodeLocation()" title="Look up coordinates from location name" style="white-space:nowrap;"><i class="fas fa-search-location"></i> Geocode</button>
+                </div>
+                <p style="font-size:11px;color:var(--text-muted);margin-top:4px;">Enter your city/state then click Geocode to auto-fill GPS below</p>
+              </div>
+              <div class="form-row">
+                <div class="form-group">
+                  <label>Latitude</label>
+                  <input type="number" step="any" id="setting-lat" class="form-control" placeholder="e.g. 10.5105">
+                </div>
+                <div class="form-group">
+                  <label>Longitude</label>
+                  <input type="number" step="any" id="setting-lng" class="form-control" placeholder="e.g. 7.4165">
+                </div>
+              </div>
+              <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:4px;">
+                <button class="btn btn-outline btn-sm" onclick="autoDetectGPS()">
+                  <i class="fas fa-crosshairs"></i> Auto-detect my location
+                </button>
+                <button class="btn btn-outline btn-sm" onclick="usePolygonCentroid()" id="use-polygon-btn" style="display:none;">
+                  <i class="fas fa-draw-polygon"></i> Use farm polygon centre
+                </button>
+              </div>
+              <div id="location-status" style="margin-top:10px;font-size:12px;color:var(--text-muted);min-height:18px;"></div>
+            </div>
+          </div>
+        </div>
+        <div style="margin-top:20px;text-align:right;">
+          <button class="btn btn-primary" onclick="saveAllSettings()"><i class="fas fa-save"></i> Save All Changes</button>
         </div>
       </section>
 
@@ -2198,16 +2216,24 @@ async function checkEmail() {
   showLoading('Checking account...');
   try {
     const users = await osGet('Users');
-    const match = users.find(u => u.Email && u.Email.toLowerCase() === email.toLowerCase());
+    // Robust match: trim + lowercase both sides
+    const match = users.find(u => u.Email && u.Email.trim().toLowerCase() === email.trim().toLowerCase());
     if (match) {
       foundUser = match;
-      // Get their farms
       const allFarms = await osGet('Farms');
-      foundFarms = allFarms.filter(f => f.OwnerUserID === match.UserID);
-      const farmName = foundFarms.length ? foundFarms[0].FarmName : 'your farm';
+      // Primary match: OwnerUserID — trim both sides to survive manual cell edits
+      foundFarms = allFarms.filter(f =>
+        f.OwnerUserID && String(f.OwnerUserID).trim() === String(match.UserID).trim()
+      );
+      // Debug log so you can see what's in the sheet
+      console.log('User found:', match.UserID, match.Email);
+      console.log('Farms matched:', foundFarms.length, '/', allFarms.length);
+      if (!foundFarms.length) {
+        console.warn('OwnerUserID mismatch. Sheet FarmIDs:', allFarms.map(f=>({id:f.FarmID,owner:f.OwnerUserID})));
+      }
 
-      // Show welcome banner
-      document.getElementById('welcome-message').textContent = `Welcome back, ${match.DisplayName}! 👋`;
+      const farmName = foundFarms.length ? foundFarms[0].FarmName : '(no farm linked — will create one)';
+      document.getElementById('welcome-message').textContent = `Welcome back, ${match.DisplayName || match.Email}! 👋`;
       document.getElementById('welcome-farm-name').textContent = `Farm: ${farmName}`;
       document.getElementById('welcome-banner').classList.add('show');
       document.getElementById('login-btn-text').textContent = 'Login';
@@ -2223,6 +2249,7 @@ async function checkEmail() {
     }
   } catch(e) {
     console.warn('checkEmail error:', e);
+    toast('Could not reach database. Check your connection.', 'error');
   }
   hideLoading();
 }
@@ -2234,13 +2261,41 @@ async function handleLogin() {
   if (loginStep === 'email') { await checkEmail(); return; }
 
   if (loginStep === 'returning' && foundUser) {
-    // Existing user — load their farm
     showLoading('Loading your farm...');
     STATE.user = foundUser;
     STATE.farms = foundFarms;
-    STATE.farm = foundFarms[0] || null;
-    // Update last login via Apps Script (fire and forget)
+
+    if (!foundFarms.length) {
+      // Account exists but no farm linked — offer to create one
+      hideLoading();
+      document.getElementById('farm-name-group').style.display = 'block';
+      document.getElementById('farm-name-hint').textContent = '⚠️ No farm linked — enter a name to create one';
+      document.getElementById('login-btn-text').textContent = 'Create Farm & Login';
+      loginStep = 'needs-farm';
+      toast('Account found but no farm is linked (the OwnerUserID in your Farms sheet may not match). Enter a farm name to create a new one, or fix the sheet manually.', 'warning', 8000);
+      return;
+    }
+
+    STATE.farm = foundFarms[0];
     asPost({ action: 'updateLastLogin', userID: foundUser.UserID });
+    await initApp();
+    return;
+  }
+
+  if (loginStep === 'needs-farm') {
+    const farmName = document.getElementById('login-farm-name').value.trim();
+    if (!farmName) { toast('Please enter a farm name.', 'error'); return; }
+    showLoading('Creating farm...');
+    const farmID = uid('frm');
+    const newFarm = {
+      FarmID: farmID, OwnerUserID: STATE.user.UserID, FarmName: farmName,
+      FarmType: 'mixed', Location: '', Latitude: '', Longitude: '',
+      SizeAcres: '', EstablishedDate: today(), Description: '',
+      CreatedAt: new Date().toISOString(), UpdatedAt: new Date().toISOString()
+    };
+    await asPost({ action: 'createFarm', ownerUserID: STATE.user.UserID, farmName, farmType: 'mixed', location: '', sizeAcres: '' });
+    STATE.farm = newFarm;
+    STATE.farms = [newFarm];
     await initApp();
     return;
   }
@@ -2292,9 +2347,21 @@ async function handleRegister() {
     CreatedAt: new Date().toISOString(), UpdatedAt: new Date().toISOString()
   };
 
-  // Send to Apps Script
-  await asPost({ action: 'createUser', email, displayName: name, phone });
-  await asPost({ action: 'createFarm', ownerUserID: userID, farmName, farmType, location, sizeAcres: farmSize });
+  // Send the FULL objects to Apps Script so the IDs written to the sheet
+  // exactly match what STATE holds in memory. This prevents the mismatch
+  // where Apps Script generates its own uid and STATE holds a different one.
+  const userResult = await asPost({ action: 'createUser', data: newUser });
+  const farmResult = await asPost({ action: 'createFarm', data: newFarm });
+
+  // If Apps Script returned a server-generated user/farm (older backend),
+  // prefer those IDs so STATE always matches the sheet.
+  if (userResult && userResult.user && userResult.user.UserID) {
+    newUser.UserID = userResult.user.UserID;
+    newFarm.OwnerUserID = userResult.user.UserID;
+  }
+  if (farmResult && farmResult.farm && farmResult.farm.FarmID) {
+    newFarm.FarmID = farmResult.farm.FarmID;
+  }
 
   STATE.user = newUser;
   STATE.farm = newFarm;
@@ -2303,8 +2370,13 @@ async function handleRegister() {
 }
 
 async function initApp() {
-  if (!STATE.user || !STATE.farm) {
-    hideLoading(); toast('Could not load farm data.', 'error'); return;
+  if (!STATE.user) {
+    hideLoading(); toast('No user session. Please log in again.', 'error'); return;
+  }
+  if (!STATE.farm) {
+    hideLoading();
+    toast('Account found but no farm is linked. This usually means the OwnerUserID in your Farms sheet was accidentally changed. Check the Farms tab — the OwnerUserID column must exactly match the UserID in the Users tab.', 'error', 10000);
+    return;
   }
   showLoading('Loading farm data...');
 
@@ -2324,6 +2396,10 @@ async function initApp() {
   await Promise.all([
     loadAllData(),
   ]);
+
+  // Auto-resolve GPS: if farm has no GPS but has a Location string,
+  // silently geocode it using OpenWeatherMap so weather works immediately
+  await autoResolveGPS();
 
   hideLoading();
   setDashboardGreeting();
@@ -2465,7 +2541,8 @@ function loadPlots() {
       <td>${p.PlantingDate||'-'}</td>
       <td>${p.ExpectedHarvestDate||'-'}</td>
       <td><span class="badge ${statusBadge}">${p.Status||'-'}</span></td>
-      <td>
+      <td style="display:flex;gap:4px;">
+        <button class="action-btn edit" onclick="editPlot('${p.PlotID}')"><i class="fas fa-edit"></i></button>
         <button class="action-btn del" onclick="deletePlot('${p.PlotID}')"><i class="fas fa-trash"></i></button>
       </td>
     </tr>`;
@@ -2584,7 +2661,8 @@ function loadLivestock() {
         <td>${l.FeedType||'-'}</td>
         <td>${l.HousingLocation||'-'}</td>
         <td><span class="badge ${st}">${l.Status||'-'}</span></td>
-        <td>
+        <td style="display:flex;gap:4px;">
+          <button class="action-btn edit" onclick="editLivestock('${l.LivestockID}')"><i class="fas fa-edit"></i></button>
           <button class="action-btn del" onclick="deleteLivestock('${l.LivestockID}')"><i class="fas fa-trash"></i></button>
         </td>
       </tr>`;
@@ -2691,7 +2769,10 @@ function loadPoultry() {
         <td>${p.FeedType||'-'}</td>
         <td>${p.EggProductionPerDay ? p.EggProductionPerDay+'/day' : 'N/A'}</td>
         <td><span class="badge ${st}">${p.Status||'-'}</span></td>
-        <td><button class="action-btn del" onclick="deletePoultry('${p.PoultryID}')"><i class="fas fa-trash"></i></button></td>
+        <td style="display:flex;gap:4px;">
+          <button class="action-btn edit" onclick="editPoultry('${p.PoultryID}')"><i class="fas fa-edit"></i></button>
+          <button class="action-btn del" onclick="deletePoultry('${p.PoultryID}')"><i class="fas fa-trash"></i></button>
+        </td>
       </tr>`;
     }).join('');
   }
@@ -2793,7 +2874,10 @@ function loadFishPonds() {
         <td>${p.PondSizeM2||'-'}</td>
         <td>${p.LastHarvestDate||'-'}</td>
         <td><span class="badge ${st}">${p.Status||'-'}</span></td>
-        <td><button class="action-btn del" onclick="deleteFishPond('${p.PondID}')"><i class="fas fa-trash"></i></button></td>
+        <td style="display:flex;gap:4px;">
+          <button class="action-btn edit" onclick="editFishPond('${p.PondID}')"><i class="fas fa-edit"></i></button>
+          <button class="action-btn del" onclick="deleteFishPond('${p.PondID}')"><i class="fas fa-trash"></i></button>
+        </td>
       </tr>`;
     }).join('');
   }
@@ -2914,6 +2998,7 @@ function loadTasks() {
       <div style="display:flex;align-items:center;gap:8px;">
         <span class="${pClass}">${t.Priority||'Medium'}</span>
         <span class="badge ${t.Status==='Done'?'badge-green':t.Status==='In Progress'?'badge-blue':'badge-gray'}" style="font-size:11px;">${t.Status||'Pending'}</span>
+        <button class="action-btn edit" onclick="editTask('${t.TaskID}')"><i class="fas fa-edit"></i></button>
         <button class="action-btn del" onclick="deleteTask('${t.TaskID}')"><i class="fas fa-trash"></i></button>
       </div>
     </div>`;
@@ -3021,6 +3106,7 @@ function showDayEvents(dateStr) {
     events.map(e =>
       `<div style="display:flex;align-items:center;gap:10px;padding:8px;background:${e.Color||'#4CAF50'}11;border-radius:8px;margin-bottom:6px;border-left:3px solid ${e.Color||'#4CAF50'};">
         <div style="flex:1;"><div style="font-weight:600;font-size:14px;">${e.Title||''}</div><div style="font-size:12px;color:var(--text-muted);">${e.Category||''} ${e.Notes?'· '+e.Notes:''}</div></div>
+        <button class="action-btn edit" onclick="editEvent('${e.EventID}')"><i class="fas fa-edit"></i></button>
         <button class="action-btn del" onclick="deleteEvent('${e.EventID}')"><i class="fas fa-trash"></i></button>
       </div>`
     ).join('');
@@ -3070,27 +3156,85 @@ const WX_ICON_MAP = {
   '50d':'fa-smog','50n':'fa-smog'
 };
 
-async function refreshWeather() {
-  const loc = STATE.farm?.Location || 'Abuja, Nigeria';
-  const label = STATE.farm?.Latitude && STATE.farm?.Longitude
-    ? `${STATE.farm.Latitude},${STATE.farm.Longitude}`
-    : loc;
-  document.getElementById('weather-location-label').textContent = loc;
+// Auto-resolve GPS silently on login if no coords set
+async function autoResolveGPS() {
+  const lat = parseFloat(STATE.farm?.Latitude);
+  const lng = parseFloat(STATE.farm?.Longitude);
+  const hasGPS = !isNaN(lat) && !isNaN(lng) && lat !== 0 && lng !== 0;
+  if (hasGPS) return; // already have GPS, nothing to do
+
+  // Try geocoding the Location string
+  const locStr = (STATE.farm?.Location || '').trim();
+  if (!locStr) return;
 
   try {
-    // Current weather
-    const qParam = STATE.farm?.Latitude && STATE.farm?.Longitude
-      ? `lat=${STATE.farm.Latitude}&lon=${STATE.farm.Longitude}`
-      : `q=${encodeURIComponent(loc)}`;
+    const r = await fetch(`https://api.openweathermap.org/data/2.5/weather?q=${encodeURIComponent(locStr)}&appid=${WEATHER_KEY}&units=metric`);
+    const d = await r.json();
+    if (r.ok && d.coord) {
+      const resolvedLat = String(d.coord.lat);
+      const resolvedLng = String(d.coord.lon);
+      STATE.farm.Latitude  = resolvedLat;
+      STATE.farm.Longitude = resolvedLng;
+      // Persist silently to the sheet
+      asPost({ action: 'updateFarm', farmID: STATE.farm.FarmID, updates: { Latitude: resolvedLat, Longitude: resolvedLng } });
+      console.log('GPS auto-resolved from location "' + locStr + '":', resolvedLat, resolvedLng);
+    }
+  } catch(e) {
+    console.warn('autoResolveGPS failed:', e.message);
+  }
+}
 
+async function refreshWeather() {
+  // Build the best location query we can:
+  // Priority 1 — GPS coords saved on farm (most accurate)
+  // Priority 2 — farm Location string (city/state)
+  // Priority 3 — hard fallback to Abuja
+  const lat = parseFloat(STATE.farm?.Latitude);
+  const lng = parseFloat(STATE.farm?.Longitude);
+  const hasGPS = !isNaN(lat) && !isNaN(lng) && lat !== 0 && lng !== 0;
+
+  const locStr = (STATE.farm?.Location || '').trim() || 'Abuja, Nigeria';
+  const qParam = hasGPS
+    ? `lat=${lat}&lon=${lng}`
+    : `q=${encodeURIComponent(locStr)}`;
+
+  // Update all location labels
+  const displayLoc = hasGPS ? `${locStr} (${lat.toFixed(4)}, ${lng.toFixed(4)})` : locStr;
+  const weatherLocEl = document.getElementById('weather-location-label');
+  if (weatherLocEl) weatherLocEl.textContent = displayLoc;
+
+  const weatherErr = (msg) => {
+    const errHtml = `<div style="padding:20px;text-align:center;color:var(--text-muted);">
+      <i class="fas fa-exclamation-triangle" style="color:var(--warning);font-size:32px;margin-bottom:10px;display:block;"></i>
+      <p style="font-weight:600;">Weather unavailable</p>
+      <p style="font-size:12px;margin-top:6px;">${msg}</p>
+    </div>`;
+    const curEl  = document.getElementById('weather-current-display');
+    const dashEl = document.getElementById('dash-weather');
+    if (curEl)  curEl.innerHTML  = errHtml;
+    if (dashEl) dashEl.innerHTML = errHtml;
+  };
+
+  try {
+    const BASE = 'https://api.openweathermap.org/data/2.5';
     const [curRes, foreRes] = await Promise.all([
-      fetch(`https://api.openweathermap.org/data/2.5/weather?${qParam}&appid=${WEATHER_KEY}&units=metric`),
-      fetch(`https://api.openweathermap.org/data/2.5/forecast?${qParam}&appid=${WEATHER_KEY}&units=metric&cnt=40`)
+      fetch(`${BASE}/weather?${qParam}&appid=${WEATHER_KEY}&units=metric`),
+      fetch(`${BASE}/forecast?${qParam}&appid=${WEATHER_KEY}&units=metric&cnt=40`)
     ]);
 
-    if (!curRes.ok) throw new Error('Weather API error');
-    const cur = await curRes.json();
+    // Handle API-level errors (bad key, city not found, quota exceeded)
+    if (!curRes.ok) {
+      const errBody = await curRes.json().catch(() => ({}));
+      const apiMsg = errBody.message || `HTTP ${curRes.status}`;
+      console.warn('OpenWeatherMap error:', curRes.status, apiMsg);
+      weatherErr(`OpenWeatherMap: ${apiMsg}${curRes.status === 401 ? ' — check your API key' : curRes.status === 404 ? ' — location not found, update Farm Location in Settings' : ''}`);
+      return;
+    }
+
+    const cur  = await curRes.json();
     const fore = await foreRes.json();
+
+    console.log('Weather loaded for:', cur.name, cur.sys?.country, '— temp:', cur.main?.temp + '°C');
 
     STATE.weatherData = { cur, fore };
     renderCurrentWeather(cur);
@@ -3098,9 +3242,8 @@ async function refreshWeather() {
     renderWeatherAdvice(cur);
     renderDashWeather(cur);
   } catch(e) {
-    console.warn('Weather error:', e);
-    document.getElementById('weather-current-display').innerHTML =
-      '<div style="padding:20px;text-align:center;color:var(--text-muted);"><i class="fas fa-exclamation-triangle" style="color:var(--warning);font-size:32px;margin-bottom:10px;display:block;"></i><p>Could not load weather data. Please check your internet connection.</p></div>';
+    console.warn('Weather fetch failed:', e.message);
+    weatherErr('Network error — check your connection. (' + e.message + ')');
   }
 }
 
@@ -3299,8 +3442,30 @@ function saveDrawnBoundary() {
 async function confirmSaveBoundary() {
   const label = document.getElementById('boundary-label').value.trim();
   if (!label) { toast('Please enter a boundary label.', 'error'); return; }
-
   showLoading('Saving boundary...');
+
+  // ── EDIT MODE: just update label/colour/notes ──
+  if (STATE._editingBoundaryID) {
+    const id = STATE._editingBoundaryID;
+    const updates = {
+      Label: label,
+      Color: document.getElementById('boundary-color').value,
+      Notes: document.getElementById('boundary-notes').value,
+      UpdatedAt: new Date().toISOString()
+    };
+    const idx = STATE.boundaries.findIndex(x => x.BoundaryID === id);
+    if (idx >= 0) Object.assign(STATE.boundaries[idx], updates);
+    await asPost({ action: 'updateBoundary', boundaryID: id, farmID: STATE.farm.FarmID, updates });
+    delete STATE._editingBoundaryID;
+    closeModal('modal-save-boundary');
+    loadBoundariesOnMap();
+    renderBoundariesList();
+    hideLoading();
+    toast(`Boundary "${label}" updated!`);
+    return;
+  }
+
+  // ── ADD MODE: save new drawn polygon ──
   const data = {
     BoundaryID: uid('bnd'), FarmID: STATE.farm.FarmID, Label: label,
     CoordinatesJSON: JSON.stringify(STATE.drawnPolygon?.points || STATE.drawPoints),
@@ -3318,8 +3483,25 @@ async function confirmSaveBoundary() {
   closeModal('modal-save-boundary');
   loadBoundariesOnMap();
   renderBoundariesList();
-  hideLoading();
-  toast(`Boundary "${label}" saved!`);
+
+  // Auto-update farm GPS to polygon centroid if no GPS was set yet
+  const curLat = parseFloat(STATE.farm?.Latitude);
+  const curLng = parseFloat(STATE.farm?.Longitude);
+  const hasGPS = !isNaN(curLat) && !isNaN(curLng) && curLat !== 0 && curLng !== 0;
+  if (!hasGPS && STATE.drawnPolygon?.points?.length >= 3) {
+    const pts = STATE.drawnPolygon.points;
+    const cLat = (pts.reduce((s,c) => s + c[0], 0) / pts.length).toFixed(6);
+    const cLng = (pts.reduce((s,c) => s + c[1], 0) / pts.length).toFixed(6);
+    STATE.farm.Latitude  = cLat;
+    STATE.farm.Longitude = cLng;
+    asPost({ action: 'updateFarm', farmID: STATE.farm.FarmID, updates: { Latitude: cLat, Longitude: cLng } });
+    toast(`Boundary "${label}" saved! Farm GPS set to polygon centre (${cLat}, ${cLng})`);
+    const btn = document.getElementById('use-polygon-btn');
+    if (btn) btn.style.display = '';
+  } else {
+    toast(`Boundary "${label}" saved!`);
+  }
+  refreshWeather();
   STATE.drawPoints = [];
 }
 
@@ -3371,6 +3553,7 @@ function renderBoundariesList() {
         <div style="font-weight:700;font-size:14px;">${b.Label||'Boundary'}</div>
         <div style="font-size:12px;color:var(--text-muted);">${coords.length} points${b.AreaM2?` · ${Number(b.AreaM2).toLocaleString()} m²`:''} ${b.Notes?'· '+b.Notes:''}</div>
       </div>
+      <button class="action-btn edit" onclick="editBoundary('${b.BoundaryID}')"><i class="fas fa-edit"></i></button>
       <button class="action-btn del" onclick="deleteBoundary('${b.BoundaryID}')"><i class="fas fa-trash"></i></button>
     </div>`;
   }).join('');
@@ -3404,6 +3587,49 @@ function resetMapView() {
     const lng = parseFloat(STATE.farm.Longitude) || 3.3792;
     leafletMap.setView([lat, lng], 14);
   }
+}
+
+// Pin current browser location on the map and save as farm GPS
+function pinMyLocation() {
+  if (!navigator.geolocation) { toast('Geolocation not supported by your browser.', 'error'); return; }
+  toast('Detecting your location...', 'warning', 3000);
+  navigator.geolocation.getCurrentPosition(
+    async (pos) => {
+      const lat = pos.coords.latitude;
+      const lng = pos.coords.longitude;
+      // Move map to detected location
+      leafletMap.setView([lat, lng], 16);
+      // Drop a special marker
+      if (window._myLocationMarker) leafletMap.removeLayer(window._myLocationMarker);
+      window._myLocationMarker = L.marker([lat, lng], {
+        icon: L.divIcon({
+          html: '<div style="background:#2196F3;width:16px;height:16px;border-radius:50%;border:3px solid white;box-shadow:0 2px 8px rgba(0,0,0,0.3);"></div>',
+          iconSize: [16, 16], iconAnchor: [8, 8]
+        })
+      }).addTo(leafletMap).bindPopup('<b>📍 My Location</b><br>' + lat.toFixed(5) + ', ' + lng.toFixed(5)).openPopup();
+      // Save to farm GPS
+      const sLat = lat.toFixed(6);
+      const sLng = lng.toFixed(6);
+      STATE.farm.Latitude  = sLat;
+      STATE.farm.Longitude = sLng;
+      asPost({ action: 'updateFarm', farmID: STATE.farm.FarmID, updates: { Latitude: sLat, Longitude: sLng } });
+      // Reverse geocode for a location name if none set
+      if (!STATE.farm.Location) {
+        try {
+          const r = await fetch(`https://api.openweathermap.org/data/2.5/weather?lat=${sLat}&lon=${sLng}&appid=${WEATHER_KEY}&units=metric`);
+          const d = await r.json();
+          if (r.ok && d.name) {
+            STATE.farm.Location = d.name + (d.sys?.country ? ', ' + d.sys.country : '');
+            asPost({ action: 'updateFarm', farmID: STATE.farm.FarmID, updates: { Location: STATE.farm.Location } });
+          }
+        } catch(e) {}
+      }
+      toast(`📍 Location pinned! GPS set to ${sLat}, ${sLng}. Weather will now use this location.`);
+      refreshWeather();
+    },
+    (err) => { toast('Could not detect location: ' + err.message, 'error'); },
+    { enableHighAccuracy: true, timeout: 10000 }
+  );
 }
 
 // Shoelace formula for polygon area in m²
@@ -3729,24 +3955,34 @@ function loadSettings() {
     document.getElementById('setting-lng').value = STATE.farm.Longitude || '';
     document.getElementById('setting-farm-size').value = STATE.farm.SizeAcres || '';
     document.getElementById('setting-farm-desc').value = STATE.farm.Description || '';
+    // Show polygon centroid button if boundaries exist
+    if (STATE.boundaries && STATE.boundaries.length) {
+      const btn = document.getElementById('use-polygon-btn');
+      if (btn) btn.style.display = '';
+    }
   }
 }
 
-async function saveUserProfile() {
-  showLoading('Saving...');
-  const updates = {
-    DisplayName: document.getElementById('setting-name').value.trim(),
-    Phone: document.getElementById('setting-phone').value.trim(),
-  };
-  Object.assign(STATE.user, updates);
-  document.getElementById('sidebar-user-name').textContent = updates.DisplayName;
-  await asPost({ action: 'updateUser', userID: STATE.user.UserID, updates });
-  hideLoading(); toast('Profile saved!');
-}
+// ── SINGLE SAVE ALL function ──────────────────────────────
+async function saveAllSettings() {
+  if (!STATE.user?.UserID || !STATE.farm?.FarmID) {
+    toast('Session error — please log in again.', 'error'); return;
+  }
+  showLoading('Saving all settings...');
+  let errors = [];
 
-async function saveFarmDetails() {
-  showLoading('Saving...');
-  const updates = {
+  // 1. User profile
+  const userUpdates = {
+    DisplayName: document.getElementById('setting-name').value.trim(),
+    Phone:       document.getElementById('setting-phone').value.trim(),
+    UpdatedAt:   new Date().toISOString(),
+  };
+  const ur = await asPost({ action: 'updateUser', userID: STATE.user.UserID, updates: userUpdates });
+  if (ur && ur.error) errors.push('Profile: ' + ur.error);
+  else Object.assign(STATE.user, userUpdates);
+
+  // 2. Farm details
+  const farmUpdates = {
     FarmName:    document.getElementById('setting-farm-name').value.trim(),
     FarmType:    document.getElementById('setting-farm-type').value,
     Location:    document.getElementById('setting-farm-location').value.trim(),
@@ -3754,22 +3990,118 @@ async function saveFarmDetails() {
     Longitude:   document.getElementById('setting-lng').value,
     SizeAcres:   document.getElementById('setting-farm-size').value,
     Description: document.getElementById('setting-farm-desc').value.trim(),
-    UpdatedAt:   new Date().toISOString()
+    UpdatedAt:   new Date().toISOString(),
   };
-  Object.assign(STATE.farm, updates);
-  document.getElementById('sidebar-farm-name').textContent = updates.FarmName;
-  document.getElementById('sidebar-farm-type').textContent = updates.FarmType;
-  await asPost({ action: 'updateFarm', farmID: STATE.farm.FarmID, updates });
-  hideLoading(); toast('Farm details saved!');
+  const fr = await asPost({ action: 'updateFarm', farmID: STATE.farm.FarmID, updates: farmUpdates });
+  if (fr && fr.error) errors.push('Farm: ' + fr.error);
+  else {
+    Object.assign(STATE.farm, farmUpdates);
+    document.getElementById('sidebar-farm-name').textContent = farmUpdates.FarmName;
+    document.getElementById('sidebar-farm-type').textContent = farmUpdates.FarmType;
+  }
+
+  // 3. Preferences
+  await asPost({ action: 'setSetting', farmID: STATE.farm.FarmID, key: 'CurrencySymbol', value: document.getElementById('setting-currency').value || '₦', userID: STATE.user.UserID });
+  await asPost({ action: 'setSetting', farmID: STATE.farm.FarmID, key: 'DateFormat',     value: document.getElementById('setting-date-format').value,       userID: STATE.user.UserID });
+
+  hideLoading();
+  if (errors.length) {
+    toast('Saved with issues: ' + errors.join(' | '), 'warning', 8000);
+  } else {
+    toast('All settings saved!');
+    document.getElementById('sidebar-user-name').textContent = userUpdates.DisplayName;
+    // Refresh weather with new GPS
+    refreshWeather();
+  }
 }
 
-async function savePreferences() {
-  showLoading('Saving...');
-  const currency = document.getElementById('setting-currency').value || '₦';
-  const dateFormat = document.getElementById('setting-date-format').value;
-  await asPost({ action: 'setSetting', farmID: STATE.farm.FarmID, key:'CurrencySymbol', value:currency, userID:STATE.user?.UserID });
-  await asPost({ action: 'setSetting', farmID: STATE.farm.FarmID, key:'DateFormat', value:dateFormat, userID:STATE.user?.UserID });
-  hideLoading(); toast('Preferences saved!');
+// ── LOCATION / GPS HELPERS ────────────────────────────────
+
+// Geocode the location text using OpenWeatherMap (we already have the key)
+async function geocodeLocation() {
+  const locInput = document.getElementById('setting-farm-location');
+  const locStr = locInput.value.trim();
+  if (!locStr) { toast('Enter a location first.', 'error'); return; }
+  const statusEl = document.getElementById('location-status');
+  statusEl.textContent = 'Looking up coordinates...';
+  statusEl.style.color = 'var(--text-muted)';
+  try {
+    const r = await fetch(`https://api.openweathermap.org/data/2.5/weather?q=${encodeURIComponent(locStr)}&appid=${WEATHER_KEY}&units=metric`);
+    const d = await r.json();
+    if (!r.ok) throw new Error(d.message || 'Location not found');
+    const lat = d.coord.lat.toFixed(6);
+    const lng = d.coord.lon.toFixed(6);
+    document.getElementById('setting-lat').value = lat;
+    document.getElementById('setting-lng').value = lng;
+    statusEl.textContent = `✅ Found: ${d.name}, ${d.sys.country} → ${lat}, ${lng}`;
+    statusEl.style.color = 'var(--primary)';
+    toast(`GPS set to ${d.name}: ${lat}, ${lng}`);
+  } catch(e) {
+    statusEl.textContent = '❌ ' + e.message + ' — try a more specific location';
+    statusEl.style.color = 'var(--danger)';
+  }
+}
+
+// Browser Geolocation API
+function autoDetectGPS() {
+  const statusEl = document.getElementById('location-status');
+  if (!navigator.geolocation) {
+    toast('Geolocation is not supported by your browser.', 'error'); return;
+  }
+  statusEl.textContent = '📡 Detecting your location...';
+  statusEl.style.color = 'var(--text-muted)';
+  navigator.geolocation.getCurrentPosition(
+    async (pos) => {
+      const lat = pos.coords.latitude.toFixed(6);
+      const lng = pos.coords.longitude.toFixed(6);
+      document.getElementById('setting-lat').value = lat;
+      document.getElementById('setting-lng').value = lng;
+      // Reverse geocode to get a location name
+      try {
+        const r = await fetch(`https://api.openweathermap.org/data/2.5/weather?lat=${lat}&lon=${lng}&appid=${WEATHER_KEY}&units=metric`);
+        const d = await r.json();
+        if (r.ok && d.name) {
+          const locName = d.name + (d.sys?.country ? ', ' + d.sys.country : '');
+          document.getElementById('setting-farm-location').value = locName;
+          statusEl.textContent = `✅ Location detected: ${locName} (${lat}, ${lng})`;
+        } else {
+          statusEl.textContent = `✅ GPS detected: ${lat}, ${lng}`;
+        }
+      } catch(e) {
+        statusEl.textContent = `✅ GPS detected: ${lat}, ${lng}`;
+      }
+      statusEl.style.color = 'var(--primary)';
+      toast('Location detected and GPS updated!');
+    },
+    (err) => {
+      statusEl.textContent = '❌ Could not detect location: ' + err.message;
+      statusEl.style.color = 'var(--danger)';
+    },
+    { enableHighAccuracy: true, timeout: 10000 }
+  );
+}
+
+// Use centroid of the first saved farm boundary polygon
+function usePolygonCentroid() {
+  if (!STATE.boundaries || !STATE.boundaries.length) {
+    toast('No farm boundaries saved yet. Draw a boundary on the Farm Map first.', 'warning'); return;
+  }
+  // Use the most recent boundary
+  let coords = [];
+  for (const b of STATE.boundaries) {
+    try { coords = JSON.parse(b.CoordinatesJSON || '[]'); if (coords.length >= 3) break; }
+    catch(e) {}
+  }
+  if (coords.length < 3) { toast('Boundary has too few points to calculate a centre.', 'error'); return; }
+  // Centroid = average of all lat/lng points
+  const lat = (coords.reduce((s,c) => s + c[0], 0) / coords.length).toFixed(6);
+  const lng = (coords.reduce((s,c) => s + c[1], 0) / coords.length).toFixed(6);
+  document.getElementById('setting-lat').value = lat;
+  document.getElementById('setting-lng').value = lng;
+  const statusEl = document.getElementById('location-status');
+  statusEl.textContent = `✅ GPS set from polygon centroid: ${lat}, ${lng}`;
+  statusEl.style.color = 'var(--primary)';
+  toast(`Farm GPS set to polygon centre: ${lat}, ${lng}`);
 }
 
 function exportData(format) {
@@ -3857,12 +4189,22 @@ async function runDiagnose() {
 
   // 3. Weather API
   log('info', '');
-  log('info', '── Weather API (OpenWeatherMap) ──');
+  log('info', `── Weather API (OpenWeatherMap) — key: ${WEATHER_KEY.substring(0,6)}... ──`);
   try {
-    const r = await fetch(`https://api.openweathermap.org/data/2.5/weather?q=Lagos&appid=${WEATHER_KEY}&units=metric`);
-    if (r.ok) { const d = await r.json(); log('ok', `  ✅ Weather API OK — Lagos: ${Math.round(d.main.temp)}°C`); }
-    else { log('fail', `  ❌ Weather API: HTTP ${r.status}`); errors++; }
-  } catch(e) { log('fail', `  ❌ Weather API: ${e.message}`); errors++; }
+    const testLoc = encodeURIComponent((STATE.farm?.Location || '').trim() || 'Abuja, Nigeria');
+    const wxUrl = `https://api.openweathermap.org/data/2.5/weather?q=${testLoc}&appid=${WEATHER_KEY}&units=metric`;
+    log('info', `  Calling: ${wxUrl.replace(WEATHER_KEY, WEATHER_KEY.substring(0,6)+'...')}`);
+    const r = await fetch(wxUrl);
+    const d = await r.json();
+    if (r.ok) {
+      log('ok', `  ✅ Weather API OK — ${d.name}: ${Math.round(d.main.temp)}°C, ${d.weather[0].description}`);
+    } else {
+      log('fail', `  ❌ Weather API HTTP ${r.status}: ${d.message}`);
+      if (r.status === 401) log('fail', `      → API key is invalid or not yet activated (new keys take up to 2 hours)`);
+      if (r.status === 404) log('warn', `      → Location "${decodeURIComponent(testLoc)}" not found — update Farm Location in Settings`);
+      errors++;
+    }
+  } catch(e) { log('fail', `  ❌ Weather API fetch failed: ${e.message}`); errors++; }
 
   // 4. State summary
   log('info', '');
@@ -3908,6 +4250,426 @@ async function runDiagnose() {
   status.textContent = errors === 0 ? '✅ All systems OK' : `⚠️ ${errors} issue(s)`;
   status.style.color = errors === 0 ? 'var(--primary)' : 'var(--danger)';
 }
+
+// ═══════════════════════════════════════════════════════════
+// UNIVERSAL EDIT: openModal pre-filled with existing data
+// ═══════════════════════════════════════════════════════════
+
+// ── EDIT STATE ──
+let EDITING = {}; // { entity: 'plot', id: 'plt_xxx' }
+
+function setEditing(entity, id) { EDITING = { entity, id }; }
+function clearEditing() { EDITING = {}; }
+
+// ── HELPER: change a modal's title and submit button label ──
+function setModalMode(modalId, isEdit) {
+  const modal = document.getElementById(modalId);
+  if (!modal) return;
+  const title = modal.querySelector('.modal-header h3');
+  const btn   = modal.querySelector('.modal-footer .btn-primary');
+  if (isEdit) {
+    if (title && !title.dataset.orig) title.dataset.orig = title.textContent;
+    if (title) title.textContent = 'Edit ' + (title.dataset.orig || title.textContent).replace('Add ','').replace('Edit ','');
+    if (btn)   btn.innerHTML = '<i class="fas fa-save"></i> Update';
+  } else {
+    if (title && title.dataset.orig) title.textContent = 'Add ' + title.dataset.orig.replace('Add ','').replace('Edit ','');
+    if (btn)   btn.innerHTML = '<i class="fas fa-save"></i> Save';
+  }
+}
+
+// ── PLOTS ──
+function editPlot(plotID) {
+  const p = STATE.plots.find(x => x.PlotID === plotID);
+  if (!p) return;
+  setEditing('plot', plotID);
+  document.getElementById('plot-name').value           = p.PlotName || '';
+  document.getElementById('plot-crop').value           = p.CropType || '';
+  document.getElementById('plot-size').value           = p.SizeAcres || '';
+  document.getElementById('plot-soil').value           = p.SoilType || '';
+  document.getElementById('plot-irrigation').value     = p.IrrigationType || 'rain-fed';
+  document.getElementById('plot-status').value         = p.Status || 'Active';
+  document.getElementById('plot-planting-date').value  = p.PlantingDate || '';
+  document.getElementById('plot-harvest-date').value   = p.ExpectedHarvestDate || '';
+  document.getElementById('plot-notes').value          = p.Notes || '';
+  setModalMode('modal-add-plot', true);
+  openModal('modal-add-plot');
+}
+
+// Override submitAddPlot to handle both add and edit
+const _origSubmitAddPlot = window.submitAddPlot;
+async function submitAddPlot() {
+  if (EDITING.entity === 'plot') {
+    const plotID = EDITING.id;
+    const name = document.getElementById('plot-name').value.trim();
+    const crop = document.getElementById('plot-crop').value.trim();
+    if (!name || !crop) { toast('Plot name and crop type are required.', 'error'); return; }
+    showLoading('Updating plot...');
+    const updates = {
+      PlotName: name, CropType: crop,
+      SizeAcres: document.getElementById('plot-size').value,
+      SoilType: document.getElementById('plot-soil').value,
+      IrrigationType: document.getElementById('plot-irrigation').value,
+      Status: document.getElementById('plot-status').value,
+      PlantingDate: document.getElementById('plot-planting-date').value,
+      ExpectedHarvestDate: document.getElementById('plot-harvest-date').value,
+      Notes: document.getElementById('plot-notes').value,
+      UpdatedAt: new Date().toISOString()
+    };
+    const idx = STATE.plots.findIndex(x => x.PlotID === plotID);
+    if (idx >= 0) Object.assign(STATE.plots[idx], updates);
+    await asPost({ action: 'updatePlot', plotID, farmID: STATE.farm.FarmID, updates });
+    clearEditing(); setModalMode('modal-add-plot', false);
+    closeModal('modal-add-plot'); loadPlots(); hideLoading(); toast('Plot updated!');
+    return;
+  }
+  // Original add flow
+  const name = document.getElementById('plot-name').value.trim();
+  const crop = document.getElementById('plot-crop').value.trim();
+  if (!name || !crop) { toast('Plot name and crop type are required.', 'error'); return; }
+  showLoading('Saving plot...');
+  const data = {
+    PlotID: uid('plt'), FarmID: STATE.farm.FarmID, PlotName: name, CropType: crop,
+    SizeAcres: document.getElementById('plot-size').value,
+    SoilType: document.getElementById('plot-soil').value,
+    IrrigationType: document.getElementById('plot-irrigation').value,
+    Status: document.getElementById('plot-status').value,
+    PlantingDate: document.getElementById('plot-planting-date').value,
+    ExpectedHarvestDate: document.getElementById('plot-harvest-date').value,
+    Notes: document.getElementById('plot-notes').value,
+    YieldKg: 0, CreatedAt: new Date().toISOString(), UpdatedAt: new Date().toISOString()
+  };
+  STATE.plots.push(data);
+  await asPost({ action: 'addPlot', farmID: STATE.farm.FarmID, data });
+  closeModal('modal-add-plot'); loadPlots(); hideLoading(); toast('Plot added successfully!');
+}
+
+// ── LIVESTOCK ──
+function editLivestock(id) {
+  const l = STATE.livestock.find(x => x.LivestockID === id);
+  if (!l) return;
+  setEditing('livestock', id);
+  document.getElementById('ls-type').value     = l.AnimalType || 'Cattle';
+  document.getElementById('ls-breed').value    = l.Breed || '';
+  document.getElementById('ls-count').value    = l.Count || '';
+  document.getElementById('ls-age').value      = l.AgeGroupMonths || '';
+  document.getElementById('ls-gender').value   = l.GenderSplit || '';
+  document.getElementById('ls-feed').value     = l.FeedType || '';
+  document.getElementById('ls-schedule').value = l.FeedingSchedule || '';
+  document.getElementById('ls-housing').value  = l.HousingLocation || '';
+  document.getElementById('ls-notes').value    = l.Notes || '';
+  setModalMode('modal-add-livestock', true);
+  openModal('modal-add-livestock');
+}
+
+const _origSubmitAddLivestock = window.submitAddLivestock;
+async function submitAddLivestock() {
+  if (EDITING.entity === 'livestock') {
+    const id = EDITING.id;
+    const type = document.getElementById('ls-type').value;
+    const count = document.getElementById('ls-count').value;
+    if (!type || !count) { toast('Animal type and count are required.', 'error'); return; }
+    showLoading('Updating...');
+    const updates = {
+      AnimalType: type, Breed: document.getElementById('ls-breed').value,
+      Count: count, AgeGroupMonths: document.getElementById('ls-age').value,
+      GenderSplit: document.getElementById('ls-gender').value,
+      FeedType: document.getElementById('ls-feed').value,
+      FeedingSchedule: document.getElementById('ls-schedule').value,
+      HousingLocation: document.getElementById('ls-housing').value,
+      Notes: document.getElementById('ls-notes').value, UpdatedAt: new Date().toISOString()
+    };
+    const idx = STATE.livestock.findIndex(x => x.LivestockID === id);
+    if (idx >= 0) Object.assign(STATE.livestock[idx], updates);
+    await asPost({ action: 'updateLivestock', livestockID: id, farmID: STATE.farm.FarmID, updates });
+    clearEditing(); setModalMode('modal-add-livestock', false);
+    closeModal('modal-add-livestock'); loadLivestock(); hideLoading(); toast('Livestock updated!');
+    return;
+  }
+  const type = document.getElementById('ls-type').value;
+  const count = document.getElementById('ls-count').value;
+  if (!type || !count) { toast('Animal type and count are required.', 'error'); return; }
+  showLoading('Saving...');
+  const data = {
+    LivestockID: uid('lvs'), FarmID: STATE.farm.FarmID,
+    AnimalType: type, Breed: document.getElementById('ls-breed').value,
+    Count: count, AgeGroupMonths: document.getElementById('ls-age').value,
+    GenderSplit: document.getElementById('ls-gender').value,
+    FeedType: document.getElementById('ls-feed').value,
+    FeedingSchedule: document.getElementById('ls-schedule').value,
+    HousingLocation: document.getElementById('ls-housing').value,
+    Status: 'Active', Notes: document.getElementById('ls-notes').value,
+    CreatedAt: new Date().toISOString(), UpdatedAt: new Date().toISOString()
+  };
+  STATE.livestock.push(data);
+  await asPost({ action: 'addLivestock', farmID: STATE.farm.FarmID, data });
+  closeModal('modal-add-livestock'); loadLivestock(); hideLoading(); toast('Livestock added!');
+}
+
+// ── POULTRY ──
+function editPoultry(id) {
+  const p = STATE.poultry.find(x => x.PoultryID === id);
+  if (!p) return;
+  setEditing('poultry', id);
+  document.getElementById('ptr-type').value     = p.BirdType || 'Laying Hens';
+  document.getElementById('ptr-breed').value    = p.Breed || '';
+  document.getElementById('ptr-qty').value      = p.Quantity || '';
+  document.getElementById('ptr-age').value      = p.AgeWeeks || '';
+  document.getElementById('ptr-feed').value     = p.FeedType || '';
+  document.getElementById('ptr-schedule').value = p.FeedingSchedule || '';
+  document.getElementById('ptr-eggs').value     = p.EggProductionPerDay || 0;
+  document.getElementById('ptr-pen').value      = p.HousingPenID || '';
+  document.getElementById('ptr-notes').value    = p.Notes || '';
+  setModalMode('modal-add-poultry', true);
+  openModal('modal-add-poultry');
+}
+
+const _origSubmitAddPoultry = window.submitAddPoultry;
+async function submitAddPoultry() {
+  if (EDITING.entity === 'poultry') {
+    const id = EDITING.id;
+    const type = document.getElementById('ptr-type').value;
+    const qty  = document.getElementById('ptr-qty').value;
+    if (!type || !qty) { toast('Bird type and quantity are required.', 'error'); return; }
+    showLoading('Updating...');
+    const updates = {
+      BirdType: type, Breed: document.getElementById('ptr-breed').value,
+      Quantity: qty, AgeWeeks: document.getElementById('ptr-age').value,
+      FeedType: document.getElementById('ptr-feed').value,
+      FeedingSchedule: document.getElementById('ptr-schedule').value,
+      EggProductionPerDay: document.getElementById('ptr-eggs').value || 0,
+      HousingPenID: document.getElementById('ptr-pen').value,
+      Notes: document.getElementById('ptr-notes').value, UpdatedAt: new Date().toISOString()
+    };
+    const idx = STATE.poultry.findIndex(x => x.PoultryID === id);
+    if (idx >= 0) Object.assign(STATE.poultry[idx], updates);
+    await asPost({ action: 'updatePoultry', poultryID: id, farmID: STATE.farm.FarmID, updates });
+    clearEditing(); setModalMode('modal-add-poultry', false);
+    closeModal('modal-add-poultry'); loadPoultry(); hideLoading(); toast('Flock updated!');
+    return;
+  }
+  const type = document.getElementById('ptr-type').value;
+  const qty = document.getElementById('ptr-qty').value;
+  if (!type || !qty) { toast('Bird type and quantity are required.', 'error'); return; }
+  showLoading('Saving...');
+  const data = {
+    PoultryID: uid('ptr'), FarmID: STATE.farm.FarmID,
+    BirdType: type, Breed: document.getElementById('ptr-breed').value,
+    Quantity: qty, AgeWeeks: document.getElementById('ptr-age').value,
+    FeedType: document.getElementById('ptr-feed').value,
+    FeedingSchedule: document.getElementById('ptr-schedule').value,
+    EggProductionPerDay: document.getElementById('ptr-eggs').value || 0,
+    HousingPenID: document.getElementById('ptr-pen').value,
+    Status: 'Active', Notes: document.getElementById('ptr-notes').value,
+    CreatedAt: new Date().toISOString(), UpdatedAt: new Date().toISOString()
+  };
+  STATE.poultry.push(data);
+  await asPost({ action: 'addPoultry', farmID: STATE.farm.FarmID, data });
+  closeModal('modal-add-poultry'); loadPoultry(); hideLoading(); toast('Poultry flock added!');
+}
+
+// ── FISH PONDS ──
+function editFishPond(id) {
+  const p = STATE.ponds.find(x => x.PondID === id);
+  if (!p) return;
+  setEditing('pond', id);
+  document.getElementById('pond-name').value          = p.PondName || '';
+  document.getElementById('pond-fish').value          = p.FishType || 'Tilapia';
+  document.getElementById('pond-stock').value         = p.StockCount || '';
+  document.getElementById('pond-stocking-date').value = p.StockingDate || '';
+  document.getElementById('pond-feed').value          = p.FeedType || '';
+  document.getElementById('pond-schedule').value      = p.FeedingSchedule || '';
+  document.getElementById('pond-size').value          = p.PondSizeM2 || '';
+  document.getElementById('pond-depth').value         = p.WaterDepthM || '';
+  document.getElementById('pond-water').value         = p.WaterSourceType || 'Borehole';
+  document.getElementById('pond-notes').value         = p.Notes || '';
+  setModalMode('modal-add-pond', true);
+  openModal('modal-add-pond');
+}
+
+const _origSubmitAddPond = window.submitAddPond;
+async function submitAddPond() {
+  if (EDITING.entity === 'pond') {
+    const id = EDITING.id;
+    const name = document.getElementById('pond-name').value.trim();
+    const type = document.getElementById('pond-fish').value;
+    if (!name || !type) { toast('Pond name and fish type are required.', 'error'); return; }
+    showLoading('Updating...');
+    const updates = {
+      PondName: name, FishType: type,
+      StockCount: document.getElementById('pond-stock').value || 0,
+      StockingDate: document.getElementById('pond-stocking-date').value,
+      FeedType: document.getElementById('pond-feed').value,
+      FeedingSchedule: document.getElementById('pond-schedule').value,
+      PondSizeM2: document.getElementById('pond-size').value,
+      WaterDepthM: document.getElementById('pond-depth').value,
+      WaterSourceType: document.getElementById('pond-water').value,
+      Notes: document.getElementById('pond-notes').value, UpdatedAt: new Date().toISOString()
+    };
+    const idx = STATE.ponds.findIndex(x => x.PondID === id);
+    if (idx >= 0) Object.assign(STATE.ponds[idx], updates);
+    await asPost({ action: 'updateFishPond', pondID: id, farmID: STATE.farm.FarmID, updates });
+    clearEditing(); setModalMode('modal-add-pond', false);
+    closeModal('modal-add-pond'); loadFishPonds(); hideLoading(); toast('Pond updated!');
+    return;
+  }
+  const name = document.getElementById('pond-name').value.trim();
+  const type = document.getElementById('pond-fish').value;
+  if (!name || !type) { toast('Pond name and fish type are required.', 'error'); return; }
+  showLoading('Saving...');
+  const data = {
+    PondID: uid('pnd'), FarmID: STATE.farm.FarmID, PondName: name, FishType: type,
+    StockCount: document.getElementById('pond-stock').value || 0,
+    StockingDate: document.getElementById('pond-stocking-date').value,
+    FeedType: document.getElementById('pond-feed').value,
+    FeedingSchedule: document.getElementById('pond-schedule').value,
+    WaterSourceType: document.getElementById('pond-water').value,
+    PondSizeM2: document.getElementById('pond-size').value,
+    WaterDepthM: document.getElementById('pond-depth').value,
+    LastHarvestDate: '', LastHarvestKg: 0,
+    Status: 'Active', Notes: document.getElementById('pond-notes').value,
+    CreatedAt: new Date().toISOString(), UpdatedAt: new Date().toISOString()
+  };
+  STATE.ponds.push(data);
+  await asPost({ action: 'addFishPond', farmID: STATE.farm.FarmID, data });
+  closeModal('modal-add-pond'); loadFishPonds(); hideLoading(); toast('Fish pond added!');
+}
+
+// ── TASKS ──
+function editTask(taskID) {
+  const t = STATE.tasks.find(x => x.TaskID === taskID);
+  if (!t) return;
+  setEditing('task', taskID);
+  document.getElementById('task-title').value    = t.Title || '';
+  document.getElementById('task-cat').value      = t.Category || 'Crops';
+  document.getElementById('task-priority').value = t.Priority || 'Medium';
+  document.getElementById('task-due').value      = t.DueDate || '';
+  document.getElementById('task-assigned').value = t.AssignedTo || '';
+  document.getElementById('task-notes').value    = t.Notes || '';
+  setModalMode('modal-add-task', true);
+  openModal('modal-add-task');
+}
+
+const _origSubmitAddTask = window.submitAddTask;
+async function submitAddTask() {
+  if (EDITING.entity === 'task') {
+    const id = EDITING.id;
+    const title = document.getElementById('task-title').value.trim();
+    if (!title) { toast('Task title is required.', 'error'); return; }
+    showLoading('Updating...');
+    const updates = {
+      Title: title, Category: document.getElementById('task-cat').value,
+      Priority: document.getElementById('task-priority').value,
+      DueDate: document.getElementById('task-due').value,
+      AssignedTo: document.getElementById('task-assigned').value,
+      Notes: document.getElementById('task-notes').value, UpdatedAt: new Date().toISOString()
+    };
+    const idx = STATE.tasks.findIndex(x => x.TaskID === id);
+    if (idx >= 0) Object.assign(STATE.tasks[idx], updates);
+    await asPost({ action: 'updateTask', taskID: id, farmID: STATE.farm.FarmID, updates });
+    clearEditing(); setModalMode('modal-add-task', false);
+    closeModal('modal-add-task'); loadTasks(); updateTaskBadge(); hideLoading(); toast('Task updated!');
+    return;
+  }
+  const title = document.getElementById('task-title').value.trim();
+  if (!title) { toast('Task title is required.', 'error'); return; }
+  showLoading('Saving...');
+  const data = {
+    TaskID: uid('tsk'), FarmID: STATE.farm.FarmID, Title: title,
+    Category: document.getElementById('task-cat').value,
+    Priority: document.getElementById('task-priority').value,
+    DueDate: document.getElementById('task-due').value,
+    AssignedTo: document.getElementById('task-assigned').value,
+    Notes: document.getElementById('task-notes').value,
+    Status: 'Pending', CreatedByUserID: STATE.user?.UserID,
+    CreatedAt: new Date().toISOString(), UpdatedAt: new Date().toISOString()
+  };
+  STATE.tasks.push(data);
+  await asPost({ action: 'addTask', farmID: STATE.farm.FarmID, data });
+  closeModal('modal-add-task'); loadTasks(); updateTaskBadge(); renderDashTasks(); hideLoading(); toast('Task created!');
+}
+
+// ── CALENDAR EVENTS ──
+function editEvent(eventID) {
+  const e = STATE.events.find(x => x.EventID === eventID);
+  if (!e) return;
+  setEditing('event', eventID);
+  document.getElementById('evt-title').value    = e.Title || '';
+  document.getElementById('evt-cat').value      = e.Category || 'Other';
+  document.getElementById('evt-color').value    = e.Color || '#4CAF50';
+  document.getElementById('evt-date').value     = e.EventDate || '';
+  document.getElementById('evt-end-date').value = e.EndDate || '';
+  document.getElementById('evt-notes').value    = e.Notes || '';
+  setModalMode('modal-add-event', true);
+  openModal('modal-add-event');
+}
+
+const _origSubmitAddEvent = window.submitAddEvent;
+async function submitAddEvent() {
+  if (EDITING.entity === 'event') {
+    const id = EDITING.id;
+    const title = document.getElementById('evt-title').value.trim();
+    const date  = document.getElementById('evt-date').value;
+    if (!title || !date) { toast('Event title and date are required.', 'error'); return; }
+    showLoading('Updating...');
+    const updates = {
+      Title: title, Category: document.getElementById('evt-cat').value,
+      EventDate: date, EndDate: document.getElementById('evt-end-date').value || date,
+      Color: document.getElementById('evt-color').value,
+      Notes: document.getElementById('evt-notes').value
+    };
+    const idx = STATE.events.findIndex(x => x.EventID === id);
+    if (idx >= 0) Object.assign(STATE.events[idx], updates);
+    await asPost({ action: 'updateCalendarEvent', eventID: id, farmID: STATE.farm.FarmID, updates });
+    clearEditing(); setModalMode('modal-add-event', false);
+    closeModal('modal-add-event'); renderCalendar(); hideLoading(); toast('Event updated!');
+    return;
+  }
+  const title = document.getElementById('evt-title').value.trim();
+  const date  = document.getElementById('evt-date').value;
+  if (!title || !date) { toast('Event title and date are required.', 'error'); return; }
+  showLoading('Saving...');
+  const data = {
+    EventID: uid('evt'), FarmID: STATE.farm.FarmID, Title: title,
+    Category: document.getElementById('evt-cat').value,
+    EventDate: date, EndDate: document.getElementById('evt-end-date').value || date,
+    Color: document.getElementById('evt-color').value,
+    Notes: document.getElementById('evt-notes').value,
+    AllDay: true, CreatedByUserID: STATE.user?.UserID,
+    CreatedAt: new Date().toISOString()
+  };
+  STATE.events.push(data);
+  await asPost({ action: 'addCalendarEvent', farmID: STATE.farm.FarmID, data });
+  closeModal('modal-add-event'); renderCalendar(); hideLoading(); toast('Event added!');
+}
+
+// ── BOUNDARY LABEL EDIT ──
+function editBoundary(id) {
+  const b = STATE.boundaries.find(x => x.BoundaryID === id);
+  if (!b) return;
+  document.getElementById('boundary-label').value = b.Label || '';
+  document.getElementById('boundary-color').value = b.Color || '#4CAF50';
+  document.getElementById('boundary-notes').value = b.Notes || '';
+  document.getElementById('boundary-area').textContent = b.AreaM2 ? `Area: ${Number(b.AreaM2).toLocaleString()} m²` : '';
+  // Store edit target; on confirmSaveBoundary check if it's an edit
+  STATE._editingBoundaryID = id;
+  openModal('modal-save-boundary');
+}
+
+// ── CLEAR EDITING STATE WHEN MODALS CLOSE ──
+document.addEventListener('click', e => {
+  if (e.target.classList.contains('modal-close') || e.target.classList.contains('modal-backdrop')) {
+    clearEditing();
+    delete STATE._editingBoundaryID;
+    // Reset modal titles
+    document.querySelectorAll('.modal-header h3[data-orig]').forEach(el => {
+      el.textContent = 'Add ' + el.dataset.orig.replace('Add ','').replace('Edit ','');
+      delete el.dataset.orig;
+    });
+    document.querySelectorAll('.modal-footer .btn-primary').forEach(btn => {
+      if (btn.innerHTML.includes('Update')) btn.innerHTML = btn.innerHTML.replace('Update','Save');
+    });
+  }
+});
 
 // ═══════════════════════════════════════════════════════════
 // INIT
