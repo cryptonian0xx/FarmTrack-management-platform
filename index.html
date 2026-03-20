@@ -1,0 +1,3895 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+  <title>FarmTrack Pro</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Fraunces:opsz,wght@9..144,700;9..144,900&display=swap" rel="stylesheet">
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<style>
+/* ═══════════════════════════════════════════════════════════
+   DESIGN TOKENS
+═══════════════════════════════════════════════════════════ */
+:root {
+  --primary:       #4CAF50;
+  --primary-dark:  #388E3C;
+  --primary-deep:  #1B5E20;
+  --primary-light: #C8E6C9;
+  --secondary:     #FFC107;
+  --accent:        #2196F3;
+  --accent-dark:   #0D47A1;
+  --danger:        #EF5350;
+  --warning:       #FF9800;
+  --success:       #4CAF50;
+  --bg:            #F1F6F1;
+  --surface:       #FFFFFF;
+  --surface2:      #F8FBF8;
+  --dark:          #1A2A1A;
+  --text:          #2C3E2C;
+  --text-muted:    #6B7F6B;
+  --border:        #DDE8DD;
+  --shadow-sm:     0 2px 8px rgba(0,0,0,0.07);
+  --shadow:        0 4px 16px rgba(0,0,0,0.10);
+  --shadow-lg:     0 8px 32px rgba(0,0,0,0.14);
+  --radius-sm:     8px;
+  --radius:        14px;
+  --radius-lg:     20px;
+  --sidebar-w:     260px;
+  --mobile-nav-h:  64px;
+  --transition:    all 0.25s cubic-bezier(.4,0,.2,1);
+  --font-head:     'Fraunces', Georgia, serif;
+  --font-body:     'Plus Jakarta Sans', sans-serif;
+}
+
+/* ═══════════════════════════════════════════════════════════
+   RESET & BASE
+═══════════════════════════════════════════════════════════ */
+*, *::before, *::after { margin:0; padding:0; box-sizing:border-box; }
+html { scroll-behavior: smooth; }
+body {
+  font-family: var(--font-body);
+  background: var(--bg);
+  color: var(--text);
+  line-height: 1.6;
+  overflow-x: hidden;
+  -webkit-font-smoothing: antialiased;
+}
+a { color: inherit; text-decoration: none; }
+img { max-width: 100%; display: block; }
+button { font-family: var(--font-body); cursor: pointer; }
+input, select, textarea { font-family: var(--font-body); }
+
+/* ═══════════════════════════════════════════════════════════
+   LOGIN SCREEN
+═══════════════════════════════════════════════════════════ */
+#login-screen {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, #1B5E20 0%, #2E7D32 40%, #388E3C 70%, #4CAF50 100%);
+  position: relative;
+  overflow: hidden;
+}
+#login-screen::before {
+  content:'';
+  position:absolute; inset:0;
+  background-image: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.04'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+}
+.login-floating-leaf {
+  position: absolute;
+  opacity: 0.06;
+  font-size: 120px;
+  color: white;
+  pointer-events: none;
+  animation: floatLeaf 8s ease-in-out infinite;
+}
+.login-floating-leaf:nth-child(1) { top:10%; left:5%;  font-size:80px;  animation-delay:0s; }
+.login-floating-leaf:nth-child(2) { top:60%; left:3%;  font-size:140px; animation-delay:2s; }
+.login-floating-leaf:nth-child(3) { top:20%; right:5%; font-size:100px; animation-delay:1s; }
+.login-floating-leaf:nth-child(4) { bottom:10%; right:8%; font-size:90px; animation-delay:3s; }
+@keyframes floatLeaf {
+  0%,100% { transform: translateY(0) rotate(0deg); }
+  50%      { transform: translateY(-20px) rotate(5deg); }
+}
+.login-card {
+  background: rgba(255,255,255,0.97);
+  border-radius: var(--radius-lg);
+  padding: 48px 44px;
+  width: 100%;
+  max-width: 440px;
+  box-shadow: 0 24px 64px rgba(0,0,0,0.3);
+  position: relative;
+  z-index: 1;
+  animation: loginSlideUp 0.5s cubic-bezier(.4,0,.2,1) both;
+}
+@keyframes loginSlideUp {
+  from { opacity:0; transform: translateY(30px); }
+  to   { opacity:1; transform: translateY(0); }
+}
+.login-logo {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 8px;
+}
+.login-logo-icon {
+  width: 52px; height: 52px;
+  background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+  border-radius: 14px;
+  display: flex; align-items: center; justify-content: center;
+  color: white; font-size: 24px;
+  box-shadow: 0 4px 12px rgba(76,175,80,0.4);
+}
+.login-logo h1 {
+  font-family: var(--font-head);
+  font-size: 28px;
+  font-weight: 900;
+  color: var(--primary-dark);
+}
+.login-logo span { color: var(--primary); }
+.login-subtitle {
+  color: var(--text-muted);
+  margin-bottom: 32px;
+  font-size: 14px;
+}
+.login-welcome-banner {
+  display: none;
+  background: linear-gradient(135deg, #E8F5E9, #C8E6C9);
+  border: 1px solid var(--primary-light);
+  border-radius: var(--radius-sm);
+  padding: 12px 16px;
+  margin-bottom: 20px;
+  align-items: center;
+  gap: 10px;
+  animation: fadeInBanner 0.3s ease;
+}
+.login-welcome-banner.show { display: flex; }
+@keyframes fadeInBanner {
+  from { opacity:0; transform:translateY(-6px); }
+  to   { opacity:1; transform:translateY(0); }
+}
+.login-welcome-banner .farm-found {
+  font-weight: 600;
+  color: var(--primary-dark);
+  font-size: 14px;
+}
+.login-welcome-banner .farm-name-found {
+  font-size: 13px;
+  color: var(--text-muted);
+}
+.form-group { margin-bottom: 18px; }
+.form-group label {
+  display: block;
+  font-weight: 600;
+  font-size: 13px;
+  margin-bottom: 6px;
+  color: var(--text);
+}
+.form-control {
+  width: 100%;
+  padding: 13px 16px;
+  border: 1.5px solid var(--border);
+  border-radius: var(--radius-sm);
+  font-size: 15px;
+  color: var(--text);
+  background: var(--surface);
+  transition: var(--transition);
+  outline: none;
+}
+.form-control:focus {
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px rgba(76,175,80,0.15);
+}
+.login-input-wrap { position: relative; }
+.login-input-wrap i {
+  position: absolute;
+  left: 14px; top: 50%;
+  transform: translateY(-50%);
+  color: var(--text-muted);
+  font-size: 15px;
+}
+.login-input-wrap .form-control { padding-left: 40px; }
+.btn {
+  padding: 12px 22px;
+  border-radius: var(--radius-sm);
+  border: none;
+  font-weight: 700;
+  font-size: 15px;
+  transition: var(--transition);
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  white-space: nowrap;
+}
+.btn-primary {
+  background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+  color: white;
+  box-shadow: 0 4px 12px rgba(76,175,80,0.35);
+}
+.btn-primary:hover { transform: translateY(-1px); box-shadow: 0 6px 18px rgba(76,175,80,0.45); }
+.btn-primary:active { transform: translateY(0); }
+.btn-secondary { background: var(--secondary); color: var(--dark); }
+.btn-secondary:hover { background: #e0a800; }
+.btn-accent { background: var(--accent); color: white; }
+.btn-accent:hover { background: #0b7dda; }
+.btn-outline { background: transparent; border: 2px solid var(--primary); color: var(--primary); }
+.btn-outline:hover { background: rgba(76,175,80,0.08); }
+.btn-danger { background: var(--danger); color: white; }
+.btn-danger:hover { background: #c62828; }
+.btn-sm { padding: 7px 14px; font-size: 13px; }
+.btn-icon { padding: 9px; border-radius: var(--radius-sm); }
+.btn-full { width: 100%; justify-content: center; }
+.btn-loading { opacity:0.7; pointer-events:none; }
+.login-divider {
+  display: flex; align-items: center; gap: 12px;
+  margin: 20px 0; color: var(--text-muted); font-size: 13px;
+}
+.login-divider::before, .login-divider::after {
+  content:''; flex:1; height:1px; background: var(--border);
+}
+.login-footer { text-align: center; font-size: 13px; color: var(--text-muted); margin-top: 20px; }
+.login-footer a { color: var(--primary); font-weight: 600; cursor: pointer; }
+/* Register form hidden by default */
+#register-form { display: none; }
+
+/* ═══════════════════════════════════════════════════════════
+   APP SHELL
+═══════════════════════════════════════════════════════════ */
+#app-shell { display: none; }
+#app-shell.visible { display: flex; min-height: 100vh; }
+
+/* ── SIDEBAR ── */
+.sidebar {
+  width: var(--sidebar-w);
+  background: linear-gradient(180deg, #1B5E20 0%, #2E7D32 50%, #388E3C 100%);
+  color: white;
+  display: flex;
+  flex-direction: column;
+  position: fixed;
+  top: 0; left: 0; bottom: 0;
+  z-index: 200;
+  transition: transform 0.3s cubic-bezier(.4,0,.2,1);
+  overflow: hidden;
+}
+.sidebar-logo {
+  display: flex; align-items: center; gap: 12px;
+  padding: 20px 20px 16px;
+  border-bottom: 1px solid rgba(255,255,255,0.1);
+  flex-shrink: 0;
+}
+.sidebar-logo-icon {
+  width: 38px; height: 38px;
+  background: rgba(255,255,255,0.15);
+  border-radius: 10px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 18px;
+}
+.sidebar-logo h1 { font-family: var(--font-head); font-size: 20px; font-weight: 900; }
+.sidebar-logo h1 span { color: var(--secondary); }
+.sidebar-farm-info {
+  padding: 14px 18px;
+  background: rgba(0,0,0,0.15);
+  margin: 12px;
+  border-radius: var(--radius-sm);
+  flex-shrink: 0;
+}
+.sidebar-farm-info .farm-label { font-size: 10px; opacity: 0.6; text-transform: uppercase; letter-spacing: 1px; }
+.sidebar-farm-info .farm-name { font-weight: 700; font-size: 15px; margin-top: 2px; }
+.sidebar-farm-info .farm-type { font-size: 11px; opacity: 0.7; margin-top: 1px; }
+.sidebar-nav { flex: 1; overflow-y: auto; padding: 8px 0; }
+.sidebar-nav::-webkit-scrollbar { width: 3px; }
+.sidebar-nav::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.2); border-radius:3px; }
+.nav-section-label {
+  font-size: 10px; text-transform: uppercase; letter-spacing: 1.2px;
+  opacity: 0.5; padding: 14px 22px 4px; font-weight: 700;
+}
+.nav-item {
+  display: flex; align-items: center; gap: 12px;
+  padding: 11px 20px;
+  cursor: pointer;
+  transition: var(--transition);
+  border-left: 3px solid transparent;
+  font-size: 14px; font-weight: 500;
+  position: relative;
+}
+.nav-item:hover { background: rgba(255,255,255,0.1); border-left-color: rgba(255,255,255,0.3); }
+.nav-item.active {
+  background: rgba(255,255,255,0.15);
+  border-left-color: var(--secondary);
+  font-weight: 700;
+}
+.nav-item i { width: 20px; text-align: center; font-size: 16px; flex-shrink:0; }
+.nav-item .badge {
+  margin-left: auto;
+  background: var(--secondary);
+  color: var(--dark);
+  font-size: 10px; font-weight: 700;
+  padding: 2px 6px; border-radius: 10px;
+}
+.sidebar-bottom {
+  padding: 12px;
+  border-top: 1px solid rgba(255,255,255,0.1);
+  flex-shrink: 0;
+}
+.sidebar-user {
+  display: flex; align-items: center; gap: 10px;
+  padding: 10px 12px;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  transition: var(--transition);
+}
+.sidebar-user:hover { background: rgba(255,255,255,0.1); }
+.user-avatar {
+  width: 36px; height: 36px; border-radius: 50%;
+  background: rgba(255,255,255,0.2);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 15px; font-weight: 700; flex-shrink:0;
+  overflow: hidden;
+}
+.user-avatar img { width:100%; height:100%; object-fit:cover; }
+.sidebar-user-info .user-name { font-size: 13px; font-weight: 700; }
+.sidebar-user-info .user-email { font-size: 11px; opacity: 0.6; }
+.sidebar-user-actions { margin-left: auto; display:flex; gap:4px; }
+.sidebar-user-actions button {
+  background:none; border:none; color:rgba(255,255,255,0.6);
+  padding:4px; cursor:pointer; font-size:14px; transition:var(--transition);
+}
+.sidebar-user-actions button:hover { color:white; }
+
+/* ── MAIN CONTENT ── */
+.main-content {
+  flex: 1;
+  margin-left: var(--sidebar-w);
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+.main-inner {
+  flex: 1;
+  padding: 28px 28px 40px;
+  max-width: 1400px;
+}
+.page-header {
+  display: flex; justify-content: space-between; align-items: flex-start;
+  margin-bottom: 28px;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+.page-header-left h2 {
+  font-family: var(--font-head);
+  font-size: 30px; font-weight: 900;
+  color: var(--primary-deep);
+  line-height: 1.1;
+}
+.page-header-left .page-subtitle {
+  color: var(--text-muted); font-size: 14px; margin-top: 4px;
+}
+.page-header-actions { display: flex; gap: 10px; flex-wrap: wrap; }
+
+/* ── TOP BAR (mobile) ── */
+.top-bar {
+  display: none;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 16px;
+  background: white;
+  box-shadow: var(--shadow-sm);
+  position: sticky; top: 0; z-index: 100;
+}
+.top-bar-logo { font-family: var(--font-head); font-size: 20px; font-weight: 900; color: var(--primary-dark); }
+.hamburger { background:none; border:none; font-size:22px; color:var(--text); }
+.sidebar-overlay {
+  display:none;
+  position:fixed; inset:0;
+  background:rgba(0,0,0,0.5);
+  z-index:199;
+}
+.sidebar-overlay.show { display:block; }
+
+/* ── CARDS ── */
+.card {
+  background: var(--surface);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-sm);
+  padding: 22px;
+  border: 1px solid var(--border);
+  transition: var(--transition);
+}
+.card:hover { box-shadow: var(--shadow); }
+.card-header {
+  display: flex; justify-content: space-between; align-items: center;
+  margin-bottom: 18px;
+  padding-bottom: 14px;
+  border-bottom: 1px solid var(--border);
+}
+.card-header h3 {
+  font-family: var(--font-head);
+  font-size: 17px; font-weight: 700; color: var(--primary-dark);
+}
+.card-header .card-icon { font-size: 20px; color: var(--primary); }
+
+/* ── SECTIONS ── */
+.section { display: none; }
+.section.active { display: block; animation: sectionFade 0.3s ease; }
+@keyframes sectionFade {
+  from { opacity:0; transform: translateY(10px); }
+  to   { opacity:1; transform: translateY(0); }
+}
+
+/* ── GRID LAYOUTS ── */
+.grid-2 { display: grid; grid-template-columns: repeat(2,1fr); gap: 20px; }
+.grid-3 { display: grid; grid-template-columns: repeat(3,1fr); gap: 20px; }
+.grid-4 { display: grid; grid-template-columns: repeat(4,1fr); gap: 16px; }
+.grid-auto { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px,1fr)); gap: 20px; }
+
+/* ── STAT CARDS ── */
+.stat-card {
+  background: var(--surface);
+  border-radius: var(--radius);
+  padding: 20px 22px;
+  border: 1px solid var(--border);
+  display: flex; align-items: center; gap: 16px;
+  box-shadow: var(--shadow-sm);
+  transition: var(--transition);
+}
+.stat-card:hover { transform:translateY(-2px); box-shadow:var(--shadow); }
+.stat-icon {
+  width: 52px; height: 52px; border-radius: 14px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 22px; flex-shrink: 0;
+}
+.stat-icon.green  { background:#E8F5E9; color:var(--primary-dark); }
+.stat-icon.blue   { background:#E3F2FD; color:var(--accent); }
+.stat-icon.orange { background:#FFF3E0; color:var(--warning); }
+.stat-icon.yellow { background:#FFFDE7; color:#F9A825; }
+.stat-icon.red    { background:#FFEBEE; color:var(--danger); }
+.stat-icon.teal   { background:#E0F2F1; color:#00796B; }
+.stat-value { font-size: 28px; font-weight: 800; color: var(--text); line-height:1; }
+.stat-label { font-size: 13px; color: var(--text-muted); margin-top: 3px; }
+.stat-change { font-size: 12px; margin-top: 4px; font-weight: 600; }
+.stat-change.up { color: var(--primary); }
+.stat-change.down { color: var(--danger); }
+
+/* ── TABLES ── */
+.table-wrap { overflow-x: auto; border-radius: var(--radius-sm); border: 1px solid var(--border); }
+table { width: 100%; border-collapse: collapse; white-space: nowrap; }
+thead th {
+  background: var(--surface2);
+  padding: 11px 14px;
+  font-weight: 700; font-size: 12px;
+  color: var(--text-muted);
+  text-transform: uppercase; letter-spacing: 0.6px;
+  text-align: left;
+  border-bottom: 1px solid var(--border);
+}
+tbody td {
+  padding: 12px 14px;
+  font-size: 14px;
+  border-bottom: 1px solid var(--border);
+  color: var(--text);
+  vertical-align: middle;
+}
+tbody tr:last-child td { border-bottom: none; }
+tbody tr:hover { background: rgba(76,175,80,0.04); }
+
+/* ── BADGES ── */
+.badge {
+  display: inline-flex; align-items: center; gap: 4px;
+  padding: 3px 10px;
+  border-radius: 20px; font-size: 12px; font-weight: 700;
+}
+.badge-green  { background:#E8F5E9; color:var(--primary-dark); }
+.badge-blue   { background:#E3F2FD; color:var(--accent-dark); }
+.badge-orange { background:#FFF3E0; color:#E65100; }
+.badge-red    { background:#FFEBEE; color:#C62828; }
+.badge-yellow { background:#FFFDE7; color:#F57F17; }
+.badge-gray   { background:#F5F5F5; color:#616161; }
+
+/* ── ACTION BUTTONS ── */
+.action-btn {
+  padding: 6px 8px; border:none; border-radius: 6px;
+  cursor:pointer; font-size:14px; transition:var(--transition);
+  background:none;
+}
+.action-btn:hover { background: var(--surface2); }
+.action-btn.edit { color: var(--accent); }
+.action-btn.del  { color: var(--danger); }
+.action-btn.view { color: var(--primary); }
+
+/* ── TASKS ── */
+.task-item {
+  display: flex; align-items: center; gap: 12px;
+  padding: 13px 0;
+  border-bottom: 1px solid var(--border);
+}
+.task-item:last-child { border-bottom: none; }
+.task-check {
+  width: 20px; height: 20px;
+  border: 2px solid var(--border);
+  border-radius: 50%; flex-shrink:0; cursor:pointer;
+  display:flex; align-items:center; justify-content:center;
+  transition:var(--transition);
+}
+.task-check:hover { border-color: var(--primary); }
+.task-check.done { background:var(--primary); border-color:var(--primary); color:white; font-size:11px; }
+.task-body { flex:1; min-width:0; }
+.task-title { font-weight: 600; font-size: 14px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.task-meta { font-size: 12px; color: var(--text-muted); margin-top: 2px; display:flex; gap:10px; flex-wrap:wrap; }
+.task-actions { display:flex; gap:4px; }
+
+/* ── PRIORITY LABELS ── */
+.priority-high   { color: var(--danger);  background: #FFEBEE; padding:2px 8px; border-radius:10px; font-size:11px; font-weight:700; }
+.priority-medium { color: var(--warning); background: #FFF3E0; padding:2px 8px; border-radius:10px; font-size:11px; font-weight:700; }
+.priority-low    { color: var(--primary); background: #E8F5E9; padding:2px 8px; border-radius:10px; font-size:11px; font-weight:700; }
+
+/* ── WEATHER ── */
+.weather-current {
+  display: flex; align-items: center; gap: 24px;
+  padding: 20px;
+  background: linear-gradient(135deg, #E3F2FD, #BBDEFB);
+  border-radius: var(--radius);
+  margin-bottom: 16px;
+}
+.weather-icon-big { font-size: 64px; line-height:1; }
+.weather-temp { font-size: 52px; font-weight: 800; line-height:1; }
+.weather-condition { font-size: 18px; font-weight: 600; margin-top:4px; }
+.weather-details-row { display:flex; gap:16px; flex-wrap:wrap; margin-top:8px; font-size:13px; color:var(--text-muted); }
+.weather-forecast-strip {
+  display: flex; gap: 10px; overflow-x: auto;
+  padding-bottom: 6px;
+}
+.weather-forecast-strip::-webkit-scrollbar { height:3px; }
+.forecast-day-card {
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 12px 16px;
+  text-align: center;
+  flex-shrink: 0; min-width: 90px;
+}
+.forecast-day-card .day-name { font-size:11px; font-weight:700; text-transform:uppercase; color:var(--text-muted); letter-spacing:.5px; }
+.forecast-day-card .day-icon { font-size: 28px; margin:8px 0; }
+.forecast-day-card .day-temp { font-size:14px; font-weight:700; }
+.forecast-day-card .day-rain { font-size:11px; color:var(--accent); margin-top:2px; }
+.weather-advice {
+  background: linear-gradient(135deg, #E8F5E9, #F1F8E9);
+  border-left: 4px solid var(--primary);
+  border-radius: var(--radius-sm);
+  padding: 14px 18px;
+  margin-top: 16px;
+}
+.weather-advice h4 { color: var(--primary-dark); font-size:14px; font-weight:700; margin-bottom:8px; }
+.weather-advice ul { list-style:none; }
+.weather-advice li { font-size:13px; color:var(--text-muted); padding:3px 0; display:flex; align-items:center; gap:8px; }
+.weather-advice li::before { content:'✓'; color:var(--primary); font-weight:700; flex-shrink:0; }
+
+/* ── MEDIA GALLERY ── */
+.media-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(180px,1fr));
+  gap: 14px;
+}
+.media-item {
+  border-radius: var(--radius-sm);
+  overflow: hidden;
+  position: relative;
+  aspect-ratio: 1;
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  cursor: pointer;
+  transition: var(--transition);
+}
+.media-item:hover { transform:scale(1.02); box-shadow:var(--shadow); }
+.media-item img { width:100%; height:100%; object-fit:cover; display:block; }
+.media-item-overlay {
+  position: absolute; inset:0;
+  background: linear-gradient(to top, rgba(0,0,0,0.7) 0%, transparent 60%);
+  opacity:0; transition:var(--transition);
+  display:flex; flex-direction:column; justify-content:flex-end; padding:10px;
+}
+.media-item:hover .media-item-overlay { opacity:1; }
+.media-item-label { color:white; font-size:12px; font-weight:600; }
+.media-item-actions { display:flex; gap:6px; margin-top:6px; }
+.media-item-actions button {
+  background:rgba(255,255,255,0.9); border:none; border-radius:6px;
+  padding:4px 8px; font-size:12px; cursor:pointer; color:var(--text);
+}
+.upload-zone {
+  border: 2px dashed var(--primary);
+  border-radius: var(--radius);
+  padding: 36px;
+  text-align: center;
+  cursor: pointer;
+  transition: var(--transition);
+  background: rgba(76,175,80,0.02);
+}
+.upload-zone:hover { background: rgba(76,175,80,0.06); }
+.upload-zone i { font-size:48px; color:var(--primary); margin-bottom:12px; }
+.upload-zone h3 { font-size:16px; font-weight:700; color:var(--primary-dark); margin-bottom:6px; }
+.upload-zone p { font-size:13px; color:var(--text-muted); }
+#upload-file-input { display:none; }
+
+/* ── MAP ── */
+#farm-map { height: 450px; border-radius: var(--radius); z-index:1; }
+.map-controls { display:flex; gap:10px; margin-top:14px; flex-wrap:wrap; }
+.map-legend {
+  display:flex; gap:12px; flex-wrap:wrap;
+  margin-top:12px; font-size:13px;
+}
+.map-legend-item { display:flex; align-items:center; gap:6px; }
+.map-legend-dot { width:12px; height:12px; border-radius:3px; }
+.draw-instructions {
+  background: var(--surface2); border:1px solid var(--border);
+  border-radius:var(--radius-sm); padding:12px 16px;
+  font-size:13px; color:var(--text-muted); margin-bottom:12px;
+  display:none;
+}
+.draw-instructions.show { display:block; }
+
+/* ── CALENDAR ── */
+.calendar-nav {
+  display:flex; align-items:center; justify-content:space-between;
+  margin-bottom:16px;
+}
+.calendar-nav h3 { font-family:var(--font-head); font-size:20px; font-weight:700; }
+.calendar-grid {
+  display: grid; grid-template-columns: repeat(7,1fr); gap: 6px;
+}
+.cal-header {
+  text-align:center; font-size:11px; font-weight:700;
+  text-transform:uppercase; letter-spacing:.5px;
+  color:var(--text-muted); padding:8px 0;
+}
+.cal-day {
+  min-height: 80px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 7px;
+  position: relative;
+  transition:var(--transition);
+  cursor:pointer;
+  background:var(--surface);
+}
+.cal-day:hover { background:var(--surface2); }
+.cal-day.today { border-color:var(--primary); background:rgba(76,175,80,0.05); }
+.cal-day.other-month { opacity:0.4; }
+.cal-day-num {
+  font-size:13px; font-weight:700;
+  color:var(--text);
+}
+.cal-day.today .cal-day-num {
+  background:var(--primary); color:white;
+  width:24px; height:24px; border-radius:50%;
+  display:flex; align-items:center; justify-content:center;
+}
+.cal-event {
+  font-size:10px; font-weight:600; padding:2px 5px;
+  border-radius:4px; margin-top:3px;
+  overflow:hidden; text-overflow:ellipsis; white-space:nowrap;
+}
+
+/* ── TABS ── */
+.tabs { display:flex; border-bottom:2px solid var(--border); margin-bottom:20px; gap:2px; overflow-x:auto; }
+.tab {
+  padding:10px 20px; cursor:pointer; font-weight:600; font-size:14px;
+  color:var(--text-muted); transition:var(--transition); white-space:nowrap;
+  border-bottom:2px solid transparent; margin-bottom:-2px;
+}
+.tab:hover { color:var(--primary); }
+.tab.active { color:var(--primary-dark); border-bottom-color:var(--primary); }
+.tab-panel { display:none; }
+.tab-panel.active { display:block; }
+
+/* ── MODAL ── */
+.modal-backdrop {
+  display:none; position:fixed; inset:0;
+  background:rgba(0,0,0,0.5); z-index:500;
+  align-items:center; justify-content:center;
+  padding:16px;
+}
+.modal-backdrop.show { display:flex; }
+.modal-box {
+  background:var(--surface); border-radius:var(--radius-lg);
+  width:100%; max-width:560px;
+  max-height:90vh; overflow-y:auto;
+  box-shadow:var(--shadow-lg);
+  animation:modalPop .25s cubic-bezier(.4,0,.2,1) both;
+}
+@keyframes modalPop {
+  from { opacity:0; transform:scale(0.95) translateY(10px); }
+  to   { opacity:1; transform:scale(1) translateY(0); }
+}
+.modal-header {
+  display:flex; justify-content:space-between; align-items:center;
+  padding:20px 24px 16px;
+  border-bottom:1px solid var(--border);
+  position:sticky; top:0; background:var(--surface); z-index:1;
+}
+.modal-header h3 { font-family:var(--font-head); font-size:20px; font-weight:700; color:var(--primary-dark); }
+.modal-close {
+  background:none; border:none; font-size:22px; cursor:pointer;
+  color:var(--text-muted); padding:4px; border-radius:6px;
+}
+.modal-close:hover { background:var(--surface2); color:var(--text); }
+.modal-body { padding:20px 24px; }
+.modal-footer {
+  padding:14px 24px;
+  border-top:1px solid var(--border);
+  display:flex; justify-content:flex-end; gap:10px;
+}
+
+/* ── FORMS ── */
+.form-group { margin-bottom:16px; }
+.form-group label { display:block; font-weight:600; font-size:13px; margin-bottom:5px; color:var(--text); }
+.form-row { display:flex; gap:14px; }
+.form-row .form-group { flex:1; }
+select.form-control {
+  appearance:none;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%23666' stroke-width='1.5' fill='none'/%3E%3C/svg%3E");
+  background-repeat:no-repeat; background-position:right 14px center;
+  padding-right:36px;
+}
+textarea.form-control { resize:vertical; min-height:80px; }
+
+/* ── TOAST ── */
+#toast-container {
+  position:fixed; bottom:24px; right:24px; z-index:9999;
+  display:flex; flex-direction:column; gap:8px;
+}
+.toast {
+  background:var(--dark); color:white;
+  padding:12px 18px; border-radius:var(--radius-sm);
+  font-size:14px; font-weight:500;
+  box-shadow:var(--shadow-lg);
+  display:flex; align-items:center; gap:10px;
+  animation:toastIn .3s ease both;
+  max-width:340px;
+}
+.toast.success { background:#2E7D32; }
+.toast.error   { background:#C62828; }
+.toast.warning { background:#E65100; }
+@keyframes toastIn { from{opacity:0;transform:translateX(20px);} to{opacity:1;transform:translateX(0);} }
+@keyframes toastOut { from{opacity:1;} to{opacity:0;transform:translateX(20px);} }
+
+/* ── LOADING SPINNER ── */
+.spinner {
+  width:20px; height:20px; border-radius:50%;
+  border:2.5px solid rgba(255,255,255,0.3);
+  border-top-color:white;
+  animation:spin .7s linear infinite; display:inline-block;
+}
+@keyframes spin { to{transform:rotate(360deg);} }
+.loading-overlay {
+  display:none; position:fixed; inset:0;
+  background:rgba(255,255,255,0.8); backdrop-filter:blur(3px);
+  z-index:9990; align-items:center; justify-content:center;
+  flex-direction:column; gap:16px;
+}
+.loading-overlay.show { display:flex; }
+.loading-overlay p { color:var(--text-muted); font-size:14px; font-weight:500; }
+
+/* ── DIAGNOSE PANEL ── */
+.diagnose-result {
+  font-family:monospace; font-size:13px; line-height:1.7;
+  background:#0D1117; color:#C9D1D9;
+  border-radius:var(--radius-sm); padding:16px;
+  max-height:400px; overflow-y:auto;
+}
+.diagnose-result .ok   { color:#3FB950; }
+.diagnose-result .fail { color:#F85149; }
+.diagnose-result .warn { color:#D29922; }
+.diagnose-result .info { color:#58A6FF; }
+
+/* ── EMPTY STATES ── */
+.empty-state {
+  text-align:center; padding:48px 24px;
+  color:var(--text-muted);
+}
+.empty-state i { font-size:48px; color:var(--primary-light); margin-bottom:14px; }
+.empty-state h4 { font-size:16px; font-weight:700; margin-bottom:6px; color:var(--text); }
+.empty-state p { font-size:14px; }
+
+/* ── SETTINGS ── */
+.settings-section { margin-bottom:28px; }
+.settings-section h4 {
+  font-weight:700; font-size:15px; color:var(--primary-dark);
+  margin-bottom:14px; padding-bottom:8px; border-bottom:1px solid var(--border);
+}
+.settings-row {
+  display:flex; align-items:center; justify-content:space-between;
+  padding:12px 0; border-bottom:1px solid var(--border);
+  gap:16px; flex-wrap:wrap;
+}
+.settings-row:last-child { border-bottom:none; }
+.settings-row label { font-size:14px; font-weight:600; }
+.settings-row .sub { font-size:12px; color:var(--text-muted); margin-top:2px; }
+.toggle {
+  position:relative; width:44px; height:24px; flex-shrink:0;
+}
+.toggle input { display:none; }
+.toggle-track {
+  position:absolute; inset:0;
+  background:var(--border); border-radius:12px;
+  cursor:pointer; transition:var(--transition);
+}
+.toggle input:checked ~ .toggle-track { background:var(--primary); }
+.toggle-thumb {
+  position:absolute; top:3px; left:3px;
+  width:18px; height:18px; border-radius:50%;
+  background:white; transition:var(--transition);
+  box-shadow:var(--shadow-sm);
+  pointer-events:none;
+}
+.toggle input:checked ~ .toggle-track .toggle-thumb { transform:translateX(20px); }
+
+/* ── ANALYTICS ── */
+.chart-container { position:relative; }
+.chart-period-btns { display:flex; gap:6px; }
+.chart-period-btns button {
+  padding:5px 12px; border-radius:var(--radius-sm);
+  border:1px solid var(--border); background:var(--surface);
+  font-size:12px; font-weight:600; color:var(--text-muted);
+  cursor:pointer; transition:var(--transition);
+}
+.chart-period-btns button.active {
+  background:var(--primary); color:white; border-color:var(--primary);
+}
+
+/* ── ACTIVITY LOG ── */
+.activity-feed { }
+.activity-item {
+  display:flex; align-items:flex-start; gap:12px;
+  padding:12px 0; border-bottom:1px solid var(--border);
+}
+.activity-item:last-child { border-bottom:none; }
+.activity-dot {
+  width:32px; height:32px; border-radius:50%;
+  display:flex; align-items:center; justify-content:center;
+  font-size:13px; flex-shrink:0; margin-top:2px;
+}
+.activity-dot.create { background:#E8F5E9; color:var(--primary); }
+.activity-dot.update { background:#E3F2FD; color:var(--accent); }
+.activity-dot.delete { background:#FFEBEE; color:var(--danger); }
+.activity-dot.login  { background:#F3E5F5; color:#7B1FA2; }
+.activity-text { font-size:13px; }
+.activity-desc { font-weight:500; }
+.activity-time { color:var(--text-muted); font-size:12px; margin-top:2px; }
+
+/* ════════════════════════════════════════════════════════════
+   RESPONSIVE
+════════════════════════════════════════════════════════════ */
+@media (max-width:992px) {
+  :root { --sidebar-w: 260px; }
+  .sidebar {
+    transform: translateX(-100%);
+  }
+  .sidebar.mobile-open {
+    transform: translateX(0);
+    box-shadow: var(--shadow-lg);
+  }
+  .main-content { margin-left: 0; }
+  .top-bar { display: flex; }
+  .grid-4 { grid-template-columns: repeat(2,1fr); }
+  .grid-3 { grid-template-columns: repeat(2,1fr); }
+  .main-inner { padding: 16px 16px 90px; }
+}
+@media (max-width:640px) {
+  .grid-4, .grid-3, .grid-2 { grid-template-columns: 1fr; }
+  .form-row { flex-direction: column; gap: 0; }
+  .page-header { flex-direction:column; }
+  .page-header-actions { width:100%; }
+  .page-header-actions .btn { flex:1; justify-content:center; }
+  .weather-current { flex-direction:column; text-align:center; }
+  .modal-box { max-height:95vh; border-radius:var(--radius) var(--radius) 0 0; }
+  .modal-backdrop { align-items:flex-end; padding:0; }
+  .login-card { padding:32px 24px; border-radius:var(--radius); }
+  #toast-container { bottom:70px; right:12px; left:12px; }
+  .toast { max-width:100%; }
+}
+/* Smallest devices */
+@media (max-width:380px) {
+  .btn { padding:10px 14px; font-size:13px; }
+  .stat-value { font-size:22px; }
+  .media-grid { grid-template-columns: repeat(2,1fr); }
+}
+</style>
+</head>
+<body>
+
+<!-- ══════════════════════════════════════════════════════════
+     LOGIN SCREEN
+══════════════════════════════════════════════════════════ -->
+<div id="login-screen">
+  <i class="fas fa-leaf login-floating-leaf"></i>
+  <i class="fas fa-seedling login-floating-leaf"></i>
+  <i class="fas fa-tree login-floating-leaf"></i>
+  <i class="fas fa-spa login-floating-leaf"></i>
+
+  <div class="login-card">
+    <div class="login-logo">
+      <div class="login-logo-icon"><i class="fas fa-tractor"></i></div>
+      <h1>FarmTrack <span>Pro</span></h1>
+    </div>
+    <p class="login-subtitle">Smart farm management, all in one place.</p>
+
+    <!-- Welcome back banner -->
+    <div class="login-welcome-banner" id="welcome-banner">
+      <i class="fas fa-hand-wave" style="color:var(--primary);font-size:20px;"></i>
+      <div>
+        <div class="farm-found" id="welcome-message">Welcome back!</div>
+        <div class="farm-name-found" id="welcome-farm-name"></div>
+      </div>
+    </div>
+
+    <!-- LOGIN FORM -->
+    <div id="login-form">
+      <div class="form-group">
+        <label>Email Address</label>
+        <div class="login-input-wrap">
+          <i class="fas fa-envelope"></i>
+          <input type="email" id="login-email" class="form-control" placeholder="you@example.com" autocomplete="email">
+        </div>
+      </div>
+      <div class="form-group" id="farm-name-group" style="display:none;">
+        <label>Farm Name <span id="farm-name-hint" style="color:var(--text-muted);font-weight:400;"></span></label>
+        <div class="login-input-wrap">
+          <i class="fas fa-home"></i>
+          <input type="text" id="login-farm-name" class="form-control" placeholder="Enter your farm name">
+        </div>
+      </div>
+      <button class="btn btn-primary btn-full" id="login-btn" onclick="handleLogin()">
+        <i class="fas fa-sign-in-alt"></i> <span id="login-btn-text">Continue</span>
+      </button>
+      <div class="login-divider">or</div>
+      <p class="login-footer">New to FarmTrack Pro? <a onclick="showRegister()">Create an account</a></p>
+    </div>
+
+    <!-- REGISTER FORM -->
+    <div id="register-form">
+      <div class="form-group">
+        <label>Full Name</label>
+        <div class="login-input-wrap">
+          <i class="fas fa-user"></i>
+          <input type="text" id="reg-name" class="form-control" placeholder="John Adeyemi">
+        </div>
+      </div>
+      <div class="form-group">
+        <label>Email Address</label>
+        <div class="login-input-wrap">
+          <i class="fas fa-envelope"></i>
+          <input type="email" id="reg-email" class="form-control" placeholder="you@example.com">
+        </div>
+      </div>
+      <div class="form-group">
+        <label>Phone Number</label>
+        <div class="login-input-wrap">
+          <i class="fas fa-phone"></i>
+          <input type="tel" id="reg-phone" class="form-control" placeholder="08012345678">
+        </div>
+      </div>
+      <div class="form-group">
+        <label>Farm Name</label>
+        <div class="login-input-wrap">
+          <i class="fas fa-home"></i>
+          <input type="text" id="reg-farm-name" class="form-control" placeholder="e.g. Green Acres Farm">
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Farm Type</label>
+          <select id="reg-farm-type" class="form-control">
+            <option value="mixed">Mixed</option>
+            <option value="crop">Crop</option>
+            <option value="livestock">Livestock</option>
+            <option value="poultry">Poultry</option>
+            <option value="aqua">Aquaculture</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Farm Size (acres)</label>
+          <input type="number" id="reg-farm-size" class="form-control" placeholder="e.g. 20">
+        </div>
+      </div>
+      <div class="form-group">
+        <label>Farm Location</label>
+        <div class="login-input-wrap">
+          <i class="fas fa-map-marker-alt"></i>
+          <input type="text" id="reg-farm-location" class="form-control" placeholder="e.g. Kaduna State, Nigeria">
+        </div>
+      </div>
+      <button class="btn btn-primary btn-full" onclick="handleRegister()">
+        <i class="fas fa-user-plus"></i> Create Account &amp; Farm
+      </button>
+      <div class="login-divider">or</div>
+      <p class="login-footer">Already have an account? <a onclick="showLogin()">Sign in</a></p>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════
+     LOADING OVERLAY
+══════════════════════════════════════════════════════════ -->
+<div class="loading-overlay" id="loading-overlay">
+  <div class="spinner" style="width:40px;height:40px;border-width:4px;border-color:rgba(76,175,80,0.3);border-top-color:var(--primary);"></div>
+  <p id="loading-msg">Loading your farm data...</p>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════
+     APP SHELL
+══════════════════════════════════════════════════════════ -->
+<div id="app-shell">
+
+  <!-- SIDEBAR -->
+  <div class="sidebar" id="sidebar">
+    <div class="sidebar-logo">
+      <div class="sidebar-logo-icon"><i class="fas fa-tractor"></i></div>
+      <h1>FarmTrack <span>Pro</span></h1>
+    </div>
+    <div class="sidebar-farm-info">
+      <div class="farm-label">Current Farm</div>
+      <div class="farm-name" id="sidebar-farm-name">Loading...</div>
+      <div class="farm-type" id="sidebar-farm-type"></div>
+    </div>
+    <nav class="sidebar-nav">
+      <div class="nav-section-label">Overview</div>
+      <div class="nav-item active" data-section="dashboard">
+        <i class="fas fa-home"></i><span>Dashboard</span>
+      </div>
+      <div class="nav-item" data-section="analytics">
+        <i class="fas fa-chart-line"></i><span>Analytics</span>
+      </div>
+      <div class="nav-item" data-section="tasks">
+        <i class="fas fa-tasks"></i><span>Tasks</span>
+        <span class="badge" id="nav-task-badge" style="display:none;">0</span>
+      </div>
+      <div class="nav-item" data-section="calendar">
+        <i class="fas fa-calendar-alt"></i><span>Calendar</span>
+      </div>
+
+      <div class="nav-section-label">Farm Modules</div>
+      <div class="nav-item" data-section="plots">
+        <i class="fas fa-seedling"></i><span>Plot Tracking</span>
+      </div>
+      <div class="nav-item" data-section="livestock">
+        <i class="fas fa-cow"></i><span>Livestock</span>
+      </div>
+      <div class="nav-item" data-section="poultry">
+        <i class="fas fa-egg"></i><span>Poultry</span>
+      </div>
+      <div class="nav-item" data-section="fish">
+        <i class="fas fa-fish"></i><span>Fish Ponds</span>
+      </div>
+
+      <div class="nav-section-label">Tools</div>
+      <div class="nav-item" data-section="weather">
+        <i class="fas fa-cloud-sun"></i><span>Weather</span>
+      </div>
+      <div class="nav-item" data-section="map">
+        <i class="fas fa-map-marked-alt"></i><span>Farm Map</span>
+      </div>
+      <div class="nav-item" data-section="media">
+        <i class="fas fa-images"></i><span>Media Gallery</span>
+      </div>
+      <div class="nav-item" data-section="activity">
+        <i class="fas fa-history"></i><span>Activity Log</span>
+      </div>
+
+      <div class="nav-section-label">Account</div>
+      <div class="nav-item" data-section="settings">
+        <i class="fas fa-cog"></i><span>Settings</span>
+      </div>
+      <div class="nav-item" data-section="diagnose">
+        <i class="fas fa-stethoscope"></i><span>Diagnose</span>
+      </div>
+    </nav>
+    <div class="sidebar-bottom">
+      <div class="sidebar-user" onclick="navigateTo('settings')">
+        <div class="user-avatar" id="sidebar-avatar">?</div>
+        <div class="sidebar-user-info">
+          <div class="user-name" id="sidebar-user-name">User</div>
+          <div class="user-email" id="sidebar-user-email">-</div>
+        </div>
+        <div class="sidebar-user-actions">
+          <button onclick="event.stopPropagation();logout()" title="Logout"><i class="fas fa-sign-out-alt"></i></button>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="sidebar-overlay" id="sidebar-overlay" onclick="closeSidebar()"></div>
+
+  <!-- MAIN -->
+  <div class="main-content">
+    <!-- Mobile top bar -->
+    <div class="top-bar">
+      <button class="hamburger" onclick="openSidebar()"><i class="fas fa-bars"></i></button>
+      <span class="top-bar-logo">FarmTrack Pro</span>
+      <button class="hamburger" onclick="navigateTo('settings')"><i class="fas fa-cog"></i></button>
+    </div>
+
+    <div class="main-inner">
+
+      <!-- ▓▓▓ DASHBOARD ▓▓▓ -->
+      <section class="section active" id="section-dashboard">
+        <div class="page-header">
+          <div class="page-header-left">
+            <h2 id="dash-greeting">Good Morning 🌱</h2>
+            <p class="page-subtitle" id="dash-date">Loading...</p>
+          </div>
+          <div class="page-header-actions">
+            <button class="btn btn-outline btn-sm" onclick="refreshDashboard()"><i class="fas fa-sync"></i> Refresh</button>
+            <button class="btn btn-primary btn-sm" onclick="openModal('modal-add-task')"><i class="fas fa-plus"></i> Quick Add</button>
+          </div>
+        </div>
+
+        <!-- Stats row -->
+        <div class="grid-4" style="margin-bottom:24px;" id="dash-stats">
+          <div class="stat-card">
+            <div class="stat-icon green"><i class="fas fa-seedling"></i></div>
+            <div><div class="stat-value" id="stat-plots">—</div><div class="stat-label">Active Plots</div></div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-icon orange"><i class="fas fa-cow"></i></div>
+            <div><div class="stat-value" id="stat-livestock">—</div><div class="stat-label">Livestock</div></div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-icon yellow"><i class="fas fa-egg"></i></div>
+            <div><div class="stat-value" id="stat-poultry">—</div><div class="stat-label">Poultry</div></div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-icon teal"><i class="fas fa-fish"></i></div>
+            <div><div class="stat-value" id="stat-fish">—</div><div class="stat-label">Fish Stock</div></div>
+          </div>
+        </div>
+
+        <div class="grid-2" style="margin-bottom:20px;">
+          <!-- Upcoming tasks -->
+          <div class="card">
+            <div class="card-header">
+              <h3>Upcoming Tasks</h3>
+              <button class="btn btn-sm btn-outline" onclick="navigateTo('tasks')"><i class="fas fa-arrow-right"></i></button>
+            </div>
+            <div id="dash-task-list"><div class="empty-state" style="padding:24px;"><i class="fas fa-check-circle" style="font-size:32px;"></i><p>Loading tasks...</p></div></div>
+          </div>
+
+          <!-- Mini weather -->
+          <div class="card">
+            <div class="card-header">
+              <h3>Weather Now</h3>
+              <button class="btn btn-sm btn-outline" onclick="navigateTo('weather')">Full Forecast</button>
+            </div>
+            <div id="dash-weather">
+              <div style="text-align:center;padding:24px;color:var(--text-muted);">
+                <div class="spinner" style="border-color:rgba(33,150,243,0.3);border-top-color:var(--accent);margin:0 auto 10px;"></div>
+                <p style="font-size:13px;">Fetching weather...</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Recent photos + Performance chart -->
+        <div class="grid-2">
+          <div class="card">
+            <div class="card-header">
+              <h3>Recent Photos</h3>
+              <button class="btn btn-sm btn-outline" onclick="navigateTo('media')">Gallery</button>
+            </div>
+            <div class="media-grid" id="dash-recent-photos" style="grid-template-columns:repeat(3,1fr);">
+              <div style="grid-column:1/-1;text-align:center;padding:20px;color:var(--text-muted);font-size:13px;"><i class="fas fa-images" style="font-size:28px;color:var(--primary-light);display:block;margin-bottom:8px;"></i>Loading photos...</div>
+            </div>
+          </div>
+          <div class="card">
+            <div class="card-header">
+              <h3>Monthly Yield Performance</h3>
+              <div class="chart-period-btns">
+                <button class="active" onclick="setChartPeriod('yield','6m',this)">6M</button>
+                <button onclick="setChartPeriod('yield','12m',this)">12M</button>
+              </div>
+            </div>
+            <div class="chart-container"><canvas id="chart-dash-yield" height="160"></canvas></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ▓▓▓ PLOTS ▓▓▓ -->
+      <section class="section" id="section-plots">
+        <div class="page-header">
+          <div class="page-header-left"><h2>Plot Tracking</h2><p class="page-subtitle">Manage crop fields and planting schedules</p></div>
+          <div class="page-header-actions">
+            <button class="btn btn-primary" onclick="openModal('modal-add-plot')"><i class="fas fa-plus"></i> Add Plot</button>
+          </div>
+        </div>
+        <div class="card">
+          <div class="tabs">
+            <div class="tab active" data-tabgroup="plots" data-tab="plots-list">All Plots</div>
+            <div class="tab" data-tabgroup="plots" data-tab="plots-log">Daily Log</div>
+          </div>
+          <div class="tab-panel active" id="tab-plots-list">
+            <div class="table-wrap">
+              <table>
+                <thead><tr><th>Plot Name</th><th>Crop</th><th>Size (acres)</th><th>Planting Date</th><th>Expected Harvest</th><th>Status</th><th>Actions</th></tr></thead>
+                <tbody id="plots-table-body"><tr><td colspan="7" style="text-align:center;padding:24px;color:var(--text-muted);">Loading...</td></tr></tbody>
+              </table>
+            </div>
+          </div>
+          <div class="tab-panel" id="tab-plots-log">
+            <div style="display:flex;gap:12px;margin-bottom:16px;flex-wrap:wrap;align-items:center;">
+              <select id="log-plot-filter" class="form-control" style="max-width:200px;" onchange="loadPlotLogs()">
+                <option value="">All Plots</option>
+              </select>
+              <button class="btn btn-primary btn-sm" onclick="openModal('modal-add-plot-log')"><i class="fas fa-plus"></i> Add Log Entry</button>
+            </div>
+            <div class="table-wrap">
+              <table>
+                <thead><tr><th>Date</th><th>Plot</th><th>Activity</th><th>Details</th><th>Inputs Used</th><th>Cost (₦)</th><th>Yield (kg)</th><th>Worker</th></tr></thead>
+                <tbody id="plot-log-body"><tr><td colspan="8" style="text-align:center;padding:24px;color:var(--text-muted);">Select a plot to view logs</td></tr></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ▓▓▓ LIVESTOCK ▓▓▓ -->
+      <section class="section" id="section-livestock">
+        <div class="page-header">
+          <div class="page-header-left"><h2>Livestock Management</h2><p class="page-subtitle">Track animals, health records, and feeding</p></div>
+          <div class="page-header-actions">
+            <button class="btn btn-primary" onclick="openModal('modal-add-livestock')"><i class="fas fa-plus"></i> Add Animal</button>
+          </div>
+        </div>
+        <div class="card">
+          <div class="tabs">
+            <div class="tab active" data-tabgroup="livestock" data-tab="ls-inventory">Inventory</div>
+            <div class="tab" data-tabgroup="livestock" data-tab="ls-health">Health Log</div>
+          </div>
+          <div class="tab-panel active" id="tab-ls-inventory">
+            <div class="table-wrap">
+              <table>
+                <thead><tr><th>Animal Type</th><th>Breed</th><th>Count</th><th>Age</th><th>Feed Type</th><th>Housing</th><th>Status</th><th>Actions</th></tr></thead>
+                <tbody id="livestock-table-body"><tr><td colspan="8" style="text-align:center;padding:24px;color:var(--text-muted);">Loading...</td></tr></tbody>
+              </table>
+            </div>
+          </div>
+          <div class="tab-panel" id="tab-ls-health">
+            <div style="display:flex;gap:12px;margin-bottom:16px;flex-wrap:wrap;align-items:center;">
+              <select id="health-livestock-filter" class="form-control" style="max-width:220px;" onchange="loadHealthLogs()">
+                <option value="">All Animals</option>
+              </select>
+              <button class="btn btn-primary btn-sm" onclick="openModal('modal-add-health-log')"><i class="fas fa-plus"></i> Add Health Event</button>
+            </div>
+            <div class="table-wrap">
+              <table>
+                <thead><tr><th>Date</th><th>Animal</th><th>Event Type</th><th>Description</th><th>Vet</th><th>Drug</th><th>Count</th><th>Cost (₦)</th></tr></thead>
+                <tbody id="health-log-body"><tr><td colspan="8" style="text-align:center;padding:24px;color:var(--text-muted);">Loading...</td></tr></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ▓▓▓ POULTRY ▓▓▓ -->
+      <section class="section" id="section-poultry">
+        <div class="page-header">
+          <div class="page-header-left"><h2>Poultry Management</h2><p class="page-subtitle">Track flocks, egg production, and health</p></div>
+          <div class="page-header-actions">
+            <button class="btn btn-primary" onclick="openModal('modal-add-poultry')"><i class="fas fa-plus"></i> Add Flock</button>
+          </div>
+        </div>
+        <div class="card">
+          <div class="tabs">
+            <div class="tab active" data-tabgroup="poultry" data-tab="ptr-inventory">Flocks</div>
+            <div class="tab" data-tabgroup="poultry" data-tab="ptr-eggs">Egg / Production Log</div>
+          </div>
+          <div class="tab-panel active" id="tab-ptr-inventory">
+            <div class="table-wrap">
+              <table>
+                <thead><tr><th>Bird Type</th><th>Breed</th><th>Quantity</th><th>Age (wks)</th><th>Feed Type</th><th>Eggs/Day</th><th>Status</th><th>Actions</th></tr></thead>
+                <tbody id="poultry-table-body"><tr><td colspan="8" style="text-align:center;padding:24px;color:var(--text-muted);">Loading...</td></tr></tbody>
+              </table>
+            </div>
+          </div>
+          <div class="tab-panel" id="tab-ptr-eggs">
+            <div style="display:flex;gap:12px;margin-bottom:16px;flex-wrap:wrap;align-items:center;">
+              <select id="egg-poultry-filter" class="form-control" style="max-width:220px;" onchange="loadEggLogs()">
+                <option value="">All Flocks</option>
+              </select>
+              <button class="btn btn-primary btn-sm" onclick="openModal('modal-add-egg-log')"><i class="fas fa-plus"></i> Log Production</button>
+            </div>
+            <div class="table-wrap">
+              <table>
+                <thead><tr><th>Date</th><th>Flock</th><th>Eggs Collected</th><th>Broken</th><th>Mortality</th><th>Feed (kg)</th><th>Notes</th></tr></thead>
+                <tbody id="egg-log-body"><tr><td colspan="7" style="text-align:center;padding:24px;color:var(--text-muted);">Loading...</td></tr></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ▓▓▓ FISH PONDS ▓▓▓ -->
+      <section class="section" id="section-fish">
+        <div class="page-header">
+          <div class="page-header-left"><h2>Fish Pond Management</h2><p class="page-subtitle">Monitor ponds, stock, and water quality</p></div>
+          <div class="page-header-actions">
+            <button class="btn btn-primary" onclick="openModal('modal-add-pond')"><i class="fas fa-plus"></i> Add Pond</button>
+          </div>
+        </div>
+        <div class="card">
+          <div class="tabs">
+            <div class="tab active" data-tabgroup="fish" data-tab="fish-ponds">Ponds</div>
+            <div class="tab" data-tabgroup="fish" data-tab="fish-logs">Feed / Water Log</div>
+          </div>
+          <div class="tab-panel active" id="tab-fish-ponds">
+            <div class="table-wrap">
+              <table>
+                <thead><tr><th>Pond Name</th><th>Fish Type</th><th>Stock Count</th><th>Feeding</th><th>Size (m²)</th><th>Last Harvest</th><th>Status</th><th>Actions</th></tr></thead>
+                <tbody id="fish-table-body"><tr><td colspan="8" style="text-align:center;padding:24px;color:var(--text-muted);">Loading...</td></tr></tbody>
+              </table>
+            </div>
+          </div>
+          <div class="tab-panel" id="tab-fish-logs">
+            <div style="display:flex;gap:12px;margin-bottom:16px;flex-wrap:wrap;align-items:center;">
+              <select id="fish-pond-filter" class="form-control" style="max-width:220px;" onchange="loadFishLogs()">
+                <option value="">All Ponds</option>
+              </select>
+              <button class="btn btn-primary btn-sm" onclick="openModal('modal-add-fish-log')"><i class="fas fa-plus"></i> Add Log</button>
+            </div>
+            <div class="table-wrap">
+              <table>
+                <thead><tr><th>Date</th><th>Pond</th><th>Feed (kg)</th><th>Mortality</th><th>Temp (°C)</th><th>pH</th><th>O₂ (mg/L)</th><th>Notes</th></tr></thead>
+                <tbody id="fish-log-body"><tr><td colspan="8" style="text-align:center;padding:24px;color:var(--text-muted);">Loading...</td></tr></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ▓▓▓ TASKS ▓▓▓ -->
+      <section class="section" id="section-tasks">
+        <div class="page-header">
+          <div class="page-header-left"><h2>Tasks &amp; Activities</h2><p class="page-subtitle">Create, assign, and track farm tasks</p></div>
+          <div class="page-header-actions">
+            <select id="task-filter-status" class="form-control" style="max-width:150px;" onchange="loadTasks()">
+              <option value="">All</option><option value="Pending">Pending</option>
+              <option value="In Progress">In Progress</option><option value="Done">Done</option>
+            </select>
+            <button class="btn btn-primary" onclick="openModal('modal-add-task')"><i class="fas fa-plus"></i> Add Task</button>
+          </div>
+        </div>
+        <div class="card">
+          <div id="tasks-container"><div class="empty-state"><i class="fas fa-tasks"></i><h4>Loading tasks...</h4></div></div>
+        </div>
+      </section>
+
+      <!-- ▓▓▓ CALENDAR ▓▓▓ -->
+      <section class="section" id="section-calendar">
+        <div class="page-header">
+          <div class="page-header-left"><h2>Farm Calendar</h2><p class="page-subtitle">Schedule and track farm events</p></div>
+          <div class="page-header-actions">
+            <button class="btn btn-primary" onclick="openModal('modal-add-event')"><i class="fas fa-plus"></i> Add Event</button>
+          </div>
+        </div>
+        <div class="card">
+          <div class="calendar-nav">
+            <button class="btn btn-outline btn-sm" onclick="calNav(-1)"><i class="fas fa-chevron-left"></i></button>
+            <h3 id="cal-month-label">Month Year</h3>
+            <button class="btn btn-outline btn-sm" onclick="calNav(1)"><i class="fas fa-chevron-right"></i></button>
+          </div>
+          <div class="calendar-grid" id="calendar-grid"></div>
+          <div id="cal-events-today" style="margin-top:16px;"></div>
+        </div>
+      </section>
+
+      <!-- ▓▓▓ ANALYTICS ▓▓▓ -->
+      <section class="section" id="section-analytics">
+        <div class="page-header">
+          <div class="page-header-left"><h2>Farm Analytics</h2><p class="page-subtitle">Insights from your farm data</p></div>
+        </div>
+        <div class="grid-2" style="margin-bottom:20px;">
+          <div class="card">
+            <div class="card-header"><h3>Crop Yield by Type (kg)</h3><div class="chart-period-btns"><button class="active" onclick="setChartPeriod('cropbar','current',this)">Current</button></div></div>
+            <canvas id="chart-crop-bar" height="200"></canvas>
+          </div>
+          <div class="card">
+            <div class="card-header"><h3>Livestock Growth Trend</h3></div>
+            <canvas id="chart-livestock-line" height="200"></canvas>
+          </div>
+        </div>
+        <div class="grid-2" style="margin-bottom:20px;">
+          <div class="card">
+            <div class="card-header"><h3>Daily Egg Production (30 days)</h3></div>
+            <canvas id="chart-eggs" height="200"></canvas>
+          </div>
+          <div class="card">
+            <div class="card-header"><h3>Task Completion Status</h3></div>
+            <canvas id="chart-tasks-status" height="200"></canvas>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-header"><h3>Monthly Yield Trend</h3>
+            <div class="chart-period-btns">
+              <button class="active" onclick="setChartPeriod('yield-main','6m',this)">6M</button>
+              <button onclick="setChartPeriod('yield-main','12m',this)">12M</button>
+            </div>
+          </div>
+          <canvas id="chart-yield-main" height="120"></canvas>
+        </div>
+      </section>
+
+      <!-- ▓▓▓ WEATHER ▓▓▓ -->
+      <section class="section" id="section-weather">
+        <div class="page-header">
+          <div class="page-header-left"><h2>Weather Forecast</h2><p class="page-subtitle" id="weather-location-label">Detecting location...</p></div>
+          <div class="page-header-actions">
+            <button class="btn btn-outline btn-sm" onclick="refreshWeather()"><i class="fas fa-sync"></i> Refresh</button>
+          </div>
+        </div>
+        <div class="card" style="margin-bottom:16px;">
+          <div id="weather-current-display">
+            <div style="text-align:center;padding:32px;color:var(--text-muted);">
+              <div class="spinner" style="border-color:rgba(33,150,243,0.3);border-top-color:var(--accent);width:36px;height:36px;border-width:3px;margin:0 auto 12px;"></div>
+              <p>Fetching live weather data...</p>
+            </div>
+          </div>
+        </div>
+        <div class="card" style="margin-bottom:16px;">
+          <div class="card-header"><h3>5-Day Forecast</h3></div>
+          <div class="weather-forecast-strip" id="weather-forecast-strip">
+            <div style="color:var(--text-muted);font-size:13px;padding:20px;">Loading forecast...</div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-header"><h3><i class="fas fa-leaf" style="color:var(--primary);"></i> Farming Recommendations</h3></div>
+          <ul class="weather-advice" id="weather-advice-list" style="padding:16px 20px;">
+            <li>Loading recommendations...</li>
+          </ul>
+        </div>
+      </section>
+
+      <!-- ▓▓▓ MAP ▓▓▓ -->
+      <section class="section" id="section-map">
+        <div class="page-header">
+          <div class="page-header-left"><h2>Farm Map</h2><p class="page-subtitle">Visualise and draw your farm boundaries</p></div>
+          <div class="page-header-actions">
+            <button class="btn btn-outline" id="draw-field-btn" onclick="startDrawing()"><i class="fas fa-draw-polygon"></i> Draw Field</button>
+            <button class="btn btn-primary" id="save-map-btn" onclick="saveDrawnBoundary()" disabled><i class="fas fa-save"></i> Save Boundary</button>
+            <button class="btn btn-secondary btn-sm" onclick="resetMapView()"><i class="fas fa-redo"></i> Reset View</button>
+          </div>
+        </div>
+        <div class="draw-instructions" id="draw-instructions">
+          <i class="fas fa-info-circle" style="color:var(--accent);"></i>
+          <strong>Drawing mode active:</strong> Click on the map to add polygon points. Click the first point again (or press <kbd>Enter</kbd>) to close the shape. Press <kbd>Escape</kbd> to cancel.
+        </div>
+        <div class="card" style="padding:0;overflow:hidden;">
+          <div id="farm-map"></div>
+        </div>
+        <div class="map-controls" style="margin-top:14px;">
+          <div style="flex:1;">
+            <div class="map-legend" id="map-legend"></div>
+          </div>
+          <button class="btn btn-danger btn-sm" onclick="clearAllBoundaries()" style="margin-left:auto;"><i class="fas fa-trash"></i> Clear All</button>
+        </div>
+        <div class="card" style="margin-top:14px;">
+          <div class="card-header"><h3>Saved Boundaries</h3></div>
+          <div id="boundaries-list"><p style="color:var(--text-muted);font-size:14px;">Loading...</p></div>
+        </div>
+      </section>
+
+      <!-- ▓▓▓ MEDIA GALLERY ▓▓▓ -->
+      <section class="section" id="section-media">
+        <div class="page-header">
+          <div class="page-header-left"><h2>Media Gallery</h2><p class="page-subtitle">Farm photos stored in Google Drive</p></div>
+          <div class="page-header-actions">
+            <select id="media-category-filter" class="form-control" style="max-width:160px;" onchange="loadMedia()">
+              <option value="">All Categories</option>
+              <option>Plot</option><option>Livestock</option><option>Poultry</option>
+              <option>Fish</option><option>Equipment</option><option>General</option>
+            </select>
+            <button class="btn btn-primary" onclick="document.getElementById('upload-file-input').click()"><i class="fas fa-upload"></i> Upload Photo</button>
+          </div>
+        </div>
+        <input type="file" id="upload-file-input" accept="image/*" multiple onchange="handleFileUpload(this.files)">
+        <div class="card" style="margin-bottom:16px;">
+          <div class="upload-zone" onclick="document.getElementById('upload-file-input').click()" id="upload-zone">
+            <i class="fas fa-cloud-upload-alt"></i>
+            <h3>Upload Farm Photos</h3>
+            <p>Click or drag &amp; drop images here (JPEG, PNG, WebP)</p>
+          </div>
+          <div id="upload-label-fields" style="display:none;margin-top:16px;">
+            <h4 style="font-size:14px;font-weight:700;margin-bottom:10px;">Add details for uploaded photos:</h4>
+            <div id="upload-label-inputs"></div>
+            <div style="display:flex;gap:10px;margin-top:12px;">
+              <button class="btn btn-primary btn-sm" onclick="confirmUpload()"><i class="fas fa-check"></i> Confirm Upload</button>
+              <button class="btn btn-outline btn-sm" onclick="cancelUpload()"><i class="fas fa-times"></i> Cancel</button>
+            </div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-header"><h3>Photos <span id="media-count" style="color:var(--text-muted);font-weight:400;font-size:14px;"></span></h3></div>
+          <div class="media-grid" id="media-grid">
+            <div class="empty-state"><i class="fas fa-images"></i><h4>Loading media...</h4></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ▓▓▓ ACTIVITY LOG ▓▓▓ -->
+      <section class="section" id="section-activity">
+        <div class="page-header">
+          <div class="page-header-left"><h2>Activity Log</h2><p class="page-subtitle">All actions on your farm</p></div>
+          <div class="page-header-actions">
+            <button class="btn btn-outline btn-sm" onclick="loadActivityLog()"><i class="fas fa-sync"></i> Refresh</button>
+          </div>
+        </div>
+        <div class="card">
+          <div class="activity-feed" id="activity-feed">
+            <div class="empty-state"><i class="fas fa-history"></i><h4>Loading activity...</h4></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ▓▓▓ SETTINGS ▓▓▓ -->
+      <section class="section" id="section-settings">
+        <div class="page-header">
+          <div class="page-header-left"><h2>Settings</h2><p class="page-subtitle">Manage your profile and farm preferences</p></div>
+        </div>
+        <div class="grid-2">
+          <div>
+            <div class="card" style="margin-bottom:16px;">
+              <div class="card-header"><h3>Personal Profile</h3></div>
+              <div class="settings-section">
+                <div class="form-group">
+                  <label>Display Name</label>
+                  <input type="text" id="setting-name" class="form-control">
+                </div>
+                <div class="form-group">
+                  <label>Email (read-only)</label>
+                  <input type="email" id="setting-email" class="form-control" readonly style="background:var(--surface2);">
+                </div>
+                <div class="form-group">
+                  <label>Phone Number</label>
+                  <input type="tel" id="setting-phone" class="form-control">
+                </div>
+                <button class="btn btn-primary btn-sm" onclick="saveUserProfile()"><i class="fas fa-save"></i> Save Profile</button>
+              </div>
+            </div>
+            <div class="card">
+              <div class="card-header"><h3>Preferences</h3></div>
+              <div class="settings-row">
+                <div><div class="settings-row" style="border:none;padding:0;"><label>Currency Symbol</label></div><div class="sub">Used throughout the app</div></div>
+                <input type="text" id="setting-currency" class="form-control" style="max-width:80px;">
+              </div>
+              <div class="settings-row">
+                <div><label>Date Format</label><div class="sub">How dates are shown</div></div>
+                <select id="setting-date-format" class="form-control" style="max-width:150px;">
+                  <option>DD/MM/YYYY</option><option>MM/DD/YYYY</option><option>YYYY-MM-DD</option>
+                </select>
+              </div>
+              <div class="settings-row">
+                <div><label>Task Notifications</label><div class="sub">Remind on task due dates</div></div>
+                <label class="toggle"><input type="checkbox" id="setting-notify-tasks" checked><div class="toggle-track"><div class="toggle-thumb"></div></div></label>
+              </div>
+              <button class="btn btn-primary btn-sm" style="margin-top:14px;" onclick="savePreferences()"><i class="fas fa-save"></i> Save Preferences</button>
+            </div>
+          </div>
+          <div>
+            <div class="card" style="margin-bottom:16px;">
+              <div class="card-header"><h3>Farm Details</h3></div>
+              <div class="settings-section">
+                <div class="form-group">
+                  <label>Farm Name</label>
+                  <input type="text" id="setting-farm-name" class="form-control">
+                </div>
+                <div class="form-group">
+                  <label>Farm Type</label>
+                  <select id="setting-farm-type" class="form-control">
+                    <option value="mixed">Mixed</option><option value="crop">Crop</option>
+                    <option value="livestock">Livestock</option><option value="poultry">Poultry</option>
+                    <option value="aqua">Aquaculture</option>
+                  </select>
+                </div>
+                <div class="form-group">
+                  <label>Farm Location</label>
+                  <input type="text" id="setting-farm-location" class="form-control">
+                </div>
+                <div class="form-row">
+                  <div class="form-group">
+                    <label>Latitude</label>
+                    <input type="number" step="any" id="setting-lat" class="form-control">
+                  </div>
+                  <div class="form-group">
+                    <label>Longitude</label>
+                    <input type="number" step="any" id="setting-lng" class="form-control">
+                  </div>
+                </div>
+                <div class="form-group">
+                  <label>Farm Size (acres)</label>
+                  <input type="number" id="setting-farm-size" class="form-control">
+                </div>
+                <div class="form-group">
+                  <label>Description</label>
+                  <textarea id="setting-farm-desc" class="form-control" rows="3"></textarea>
+                </div>
+                <button class="btn btn-primary btn-sm" onclick="saveFarmDetails()"><i class="fas fa-save"></i> Save Farm Details</button>
+              </div>
+            </div>
+            <div class="card">
+              <div class="card-header"><h3>Data Management</h3></div>
+              <div style="display:flex;flex-direction:column;gap:10px;">
+                <button class="btn btn-accent btn-sm" onclick="exportData('csv')"><i class="fas fa-file-csv"></i> Export as CSV</button>
+                <button class="btn btn-secondary btn-sm" onclick="exportData('json')"><i class="fas fa-file-code"></i> Export as JSON</button>
+                <button class="btn btn-outline btn-sm" onclick="window.print()"><i class="fas fa-print"></i> Print Summary</button>
+                <hr style="border:none;border-top:1px solid var(--border);">
+                <button class="btn btn-danger btn-sm" onclick="confirmLogout()"><i class="fas fa-sign-out-alt"></i> Logout</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ▓▓▓ DIAGNOSE ▓▓▓ -->
+      <section class="section" id="section-diagnose">
+        <div class="page-header">
+          <div class="page-header-left"><h2>System Diagnose</h2><p class="page-subtitle">Check all connections, permissions, and functions</p></div>
+          <div class="page-header-actions">
+            <button class="btn btn-primary" onclick="runDiagnose()"><i class="fas fa-stethoscope"></i> Run Diagnostics</button>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-header"><h3>Diagnostic Results</h3><span id="diag-status" style="font-size:13px;color:var(--text-muted);">Not yet run</span></div>
+          <div class="diagnose-result" id="diagnose-output">
+            <span class="info">ℹ Click "Run Diagnostics" to check all systems...</span>
+          </div>
+        </div>
+      </section>
+
+    </div><!-- end main-inner -->
+  </div><!-- end main-content -->
+</div><!-- end app-shell -->
+
+<!-- ══════════════════════════════════════════════════════════
+     MODALS
+══════════════════════════════════════════════════════════ -->
+<!-- Add Plot -->
+<div class="modal-backdrop" id="modal-add-plot">
+  <div class="modal-box">
+    <div class="modal-header"><h3>Add Plot</h3><button class="modal-close" onclick="closeModal('modal-add-plot')">&times;</button></div>
+    <div class="modal-body">
+      <div class="form-row">
+        <div class="form-group"><label>Plot Name *</label><input type="text" id="plot-name" class="form-control" placeholder="e.g. North Field"></div>
+        <div class="form-group"><label>Crop Type *</label><input type="text" id="plot-crop" class="form-control" placeholder="e.g. Maize"></div>
+      </div>
+      <div class="form-row">
+        <div class="form-group"><label>Size (acres)</label><input type="number" id="plot-size" class="form-control" step="0.1"></div>
+        <div class="form-group"><label>Soil Type</label><input type="text" id="plot-soil" class="form-control" placeholder="e.g. Loamy"></div>
+      </div>
+      <div class="form-row">
+        <div class="form-group"><label>Irrigation</label><select id="plot-irrigation" class="form-control"><option>rain-fed</option><option>drip</option><option>sprinkler</option><option>flood</option></select></div>
+        <div class="form-group"><label>Status</label><select id="plot-status" class="form-control"><option>Active</option><option>Preparing</option><option>Harvesting</option><option>Fallow</option></select></div>
+      </div>
+      <div class="form-row">
+        <div class="form-group"><label>Planting Date</label><input type="date" id="plot-planting-date" class="form-control"></div>
+        <div class="form-group"><label>Expected Harvest</label><input type="date" id="plot-harvest-date" class="form-control"></div>
+      </div>
+      <div class="form-group"><label>Notes</label><textarea id="plot-notes" class="form-control" rows="2"></textarea></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-outline" onclick="closeModal('modal-add-plot')">Cancel</button>
+      <button class="btn btn-primary" onclick="submitAddPlot()"><i class="fas fa-save"></i> Save Plot</button>
+    </div>
+  </div>
+</div>
+
+<!-- Add Plot Log -->
+<div class="modal-backdrop" id="modal-add-plot-log">
+  <div class="modal-box">
+    <div class="modal-header"><h3>Add Daily Plot Log</h3><button class="modal-close" onclick="closeModal('modal-add-plot-log')">&times;</button></div>
+    <div class="modal-body">
+      <div class="form-row">
+        <div class="form-group"><label>Plot *</label><select id="plog-plot" class="form-control"></select></div>
+        <div class="form-group"><label>Date</label><input type="date" id="plog-date" class="form-control"></div>
+      </div>
+      <div class="form-row">
+        <div class="form-group"><label>Activity *</label><select id="plog-activity" class="form-control"><option>Planting</option><option>Watering</option><option>Fertilizing</option><option>Spraying</option><option>Weeding</option><option>Harvesting</option><option>Observation</option></select></div>
+        <div class="form-group"><label>Yield Today (kg)</label><input type="number" id="plog-yield" class="form-control" value="0"></div>
+      </div>
+      <div class="form-group"><label>Details</label><textarea id="plog-details" class="form-control" rows="2"></textarea></div>
+      <div class="form-row">
+        <div class="form-group"><label>Inputs Used</label><input type="text" id="plog-inputs" class="form-control" placeholder="e.g. 50kg NPK"></div>
+        <div class="form-group"><label>Cost (₦)</label><input type="number" id="plog-cost" class="form-control" value="0"></div>
+      </div>
+      <div class="form-group"><label>Worker Name</label><input type="text" id="plog-worker" class="form-control"></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-outline" onclick="closeModal('modal-add-plot-log')">Cancel</button>
+      <button class="btn btn-primary" onclick="submitPlotLog()"><i class="fas fa-save"></i> Save Log</button>
+    </div>
+  </div>
+</div>
+
+<!-- Add Livestock -->
+<div class="modal-backdrop" id="modal-add-livestock">
+  <div class="modal-box">
+    <div class="modal-header"><h3>Add Livestock</h3><button class="modal-close" onclick="closeModal('modal-add-livestock')">&times;</button></div>
+    <div class="modal-body">
+      <div class="form-row">
+        <div class="form-group"><label>Animal Type *</label><select id="ls-type" class="form-control"><option>Cattle</option><option>Sheep</option><option>Goats</option><option>Pigs</option><option>Rabbit</option><option>Other</option></select></div>
+        <div class="form-group"><label>Breed</label><input type="text" id="ls-breed" class="form-control"></div>
+      </div>
+      <div class="form-row">
+        <div class="form-group"><label>Count *</label><input type="number" id="ls-count" class="form-control"></div>
+        <div class="form-group"><label>Age (months)</label><input type="number" id="ls-age" class="form-control"></div>
+      </div>
+      <div class="form-row">
+        <div class="form-group"><label>Gender Split</label><input type="text" id="ls-gender" class="form-control" placeholder="e.g. 10M / 14F"></div>
+        <div class="form-group"><label>Feed Type</label><input type="text" id="ls-feed" class="form-control"></div>
+      </div>
+      <div class="form-row">
+        <div class="form-group"><label>Feeding Schedule</label><input type="text" id="ls-schedule" class="form-control" placeholder="e.g. Twice daily"></div>
+        <div class="form-group"><label>Housing Location</label><input type="text" id="ls-housing" class="form-control"></div>
+      </div>
+      <div class="form-group"><label>Notes</label><textarea id="ls-notes" class="form-control" rows="2"></textarea></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-outline" onclick="closeModal('modal-add-livestock')">Cancel</button>
+      <button class="btn btn-primary" onclick="submitAddLivestock()"><i class="fas fa-save"></i> Save</button>
+    </div>
+  </div>
+</div>
+
+<!-- Add Health Log -->
+<div class="modal-backdrop" id="modal-add-health-log">
+  <div class="modal-box">
+    <div class="modal-header"><h3>Add Health Event</h3><button class="modal-close" onclick="closeModal('modal-add-health-log')">&times;</button></div>
+    <div class="modal-body">
+      <div class="form-row">
+        <div class="form-group"><label>Animal Group *</label><select id="hlog-livestock" class="form-control"></select></div>
+        <div class="form-group"><label>Date</label><input type="date" id="hlog-date" class="form-control"></div>
+      </div>
+      <div class="form-row">
+        <div class="form-group"><label>Event Type *</label><select id="hlog-event" class="form-control"><option>Vaccination</option><option>Treatment</option><option>Birth</option><option>Death</option><option>Weight Check</option><option>Sale</option></select></div>
+        <div class="form-group"><label>Count Affected</label><input type="number" id="hlog-count" class="form-control"></div>
+      </div>
+      <div class="form-group"><label>Description</label><textarea id="hlog-desc" class="form-control" rows="2"></textarea></div>
+      <div class="form-row">
+        <div class="form-group"><label>Vet Name</label><input type="text" id="hlog-vet" class="form-control"></div>
+        <div class="form-group"><label>Drug/Vaccine Used</label><input type="text" id="hlog-drug" class="form-control"></div>
+      </div>
+      <div class="form-row">
+        <div class="form-group"><label>Count Change (+/-)</label><input type="number" id="hlog-change" class="form-control" value="0"></div>
+        <div class="form-group"><label>Cost (₦)</label><input type="number" id="hlog-cost" class="form-control" value="0"></div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-outline" onclick="closeModal('modal-add-health-log')">Cancel</button>
+      <button class="btn btn-primary" onclick="submitHealthLog()"><i class="fas fa-save"></i> Save</button>
+    </div>
+  </div>
+</div>
+
+<!-- Add Poultry -->
+<div class="modal-backdrop" id="modal-add-poultry">
+  <div class="modal-box">
+    <div class="modal-header"><h3>Add Poultry Flock</h3><button class="modal-close" onclick="closeModal('modal-add-poultry')">&times;</button></div>
+    <div class="modal-body">
+      <div class="form-row">
+        <div class="form-group"><label>Bird Type *</label><select id="ptr-type" class="form-control"><option>Laying Hens</option><option>Broilers</option><option>Turkey</option><option>Duck</option><option>Quail</option></select></div>
+        <div class="form-group"><label>Breed</label><input type="text" id="ptr-breed" class="form-control"></div>
+      </div>
+      <div class="form-row">
+        <div class="form-group"><label>Quantity *</label><input type="number" id="ptr-qty" class="form-control"></div>
+        <div class="form-group"><label>Age (weeks)</label><input type="number" id="ptr-age" class="form-control"></div>
+      </div>
+      <div class="form-row">
+        <div class="form-group"><label>Feed Type</label><input type="text" id="ptr-feed" class="form-control"></div>
+        <div class="form-group"><label>Feeding Schedule</label><input type="text" id="ptr-schedule" class="form-control"></div>
+      </div>
+      <div class="form-row">
+        <div class="form-group"><label>Eggs/Day (layers)</label><input type="number" id="ptr-eggs" class="form-control" value="0"></div>
+        <div class="form-group"><label>Housing/Pen ID</label><input type="text" id="ptr-pen" class="form-control"></div>
+      </div>
+      <div class="form-group"><label>Notes</label><textarea id="ptr-notes" class="form-control" rows="2"></textarea></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-outline" onclick="closeModal('modal-add-poultry')">Cancel</button>
+      <button class="btn btn-primary" onclick="submitAddPoultry()"><i class="fas fa-save"></i> Save</button>
+    </div>
+  </div>
+</div>
+
+<!-- Add Egg Log -->
+<div class="modal-backdrop" id="modal-add-egg-log">
+  <div class="modal-box">
+    <div class="modal-header"><h3>Log Production</h3><button class="modal-close" onclick="closeModal('modal-add-egg-log')">&times;</button></div>
+    <div class="modal-body">
+      <div class="form-row">
+        <div class="form-group"><label>Flock *</label><select id="elog-poultry" class="form-control"></select></div>
+        <div class="form-group"><label>Date</label><input type="date" id="elog-date" class="form-control"></div>
+      </div>
+      <div class="form-row">
+        <div class="form-group"><label>Eggs Collected</label><input type="number" id="elog-eggs" class="form-control" value="0"></div>
+        <div class="form-group"><label>Eggs Broken</label><input type="number" id="elog-broken" class="form-control" value="0"></div>
+      </div>
+      <div class="form-row">
+        <div class="form-group"><label>Mortality</label><input type="number" id="elog-mortality" class="form-control" value="0"></div>
+        <div class="form-group"><label>Feed Consumed (kg)</label><input type="number" id="elog-feed" class="form-control" step="0.1" value="0"></div>
+      </div>
+      <div class="form-group"><label>Notes</label><textarea id="elog-notes" class="form-control" rows="2"></textarea></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-outline" onclick="closeModal('modal-add-egg-log')">Cancel</button>
+      <button class="btn btn-primary" onclick="submitEggLog()"><i class="fas fa-save"></i> Save</button>
+    </div>
+  </div>
+</div>
+
+<!-- Add Pond -->
+<div class="modal-backdrop" id="modal-add-pond">
+  <div class="modal-box">
+    <div class="modal-header"><h3>Add Fish Pond</h3><button class="modal-close" onclick="closeModal('modal-add-pond')">&times;</button></div>
+    <div class="modal-body">
+      <div class="form-row">
+        <div class="form-group"><label>Pond Name *</label><input type="text" id="pond-name" class="form-control"></div>
+        <div class="form-group"><label>Fish Type *</label><select id="pond-fish" class="form-control"><option>Tilapia</option><option>Catfish</option><option>Salmon</option><option>Carp</option><option>Other</option></select></div>
+      </div>
+      <div class="form-row">
+        <div class="form-group"><label>Stock Count</label><input type="number" id="pond-stock" class="form-control"></div>
+        <div class="form-group"><label>Stocking Date</label><input type="date" id="pond-stocking-date" class="form-control"></div>
+      </div>
+      <div class="form-row">
+        <div class="form-group"><label>Feed Type</label><input type="text" id="pond-feed" class="form-control"></div>
+        <div class="form-group"><label>Feeding Schedule</label><input type="text" id="pond-schedule" class="form-control"></div>
+      </div>
+      <div class="form-row">
+        <div class="form-group"><label>Size (m²)</label><input type="number" id="pond-size" class="form-control"></div>
+        <div class="form-group"><label>Water Depth (m)</label><input type="number" id="pond-depth" class="form-control" step="0.1"></div>
+      </div>
+      <div class="form-group"><label>Water Source</label><select id="pond-water" class="form-control"><option>Borehole</option><option>River</option><option>Rain</option><option>Municipal</option></select></div>
+      <div class="form-group"><label>Notes</label><textarea id="pond-notes" class="form-control" rows="2"></textarea></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-outline" onclick="closeModal('modal-add-pond')">Cancel</button>
+      <button class="btn btn-primary" onclick="submitAddPond()"><i class="fas fa-save"></i> Save</button>
+    </div>
+  </div>
+</div>
+
+<!-- Add Fish Log -->
+<div class="modal-backdrop" id="modal-add-fish-log">
+  <div class="modal-box">
+    <div class="modal-header"><h3>Add Feed/Water Log</h3><button class="modal-close" onclick="closeModal('modal-add-fish-log')">&times;</button></div>
+    <div class="modal-body">
+      <div class="form-row">
+        <div class="form-group"><label>Pond *</label><select id="flog-pond" class="form-control"></select></div>
+        <div class="form-group"><label>Date</label><input type="date" id="flog-date" class="form-control"></div>
+      </div>
+      <div class="form-row">
+        <div class="form-group"><label>Feed Amount (kg)</label><input type="number" id="flog-feed" class="form-control" step="0.1" value="0"></div>
+        <div class="form-group"><label>Mortality</label><input type="number" id="flog-mortality" class="form-control" value="0"></div>
+      </div>
+      <div class="form-row">
+        <div class="form-group"><label>Water Temp (°C)</label><input type="number" id="flog-temp" class="form-control" step="0.1"></div>
+        <div class="form-group"><label>pH Level</label><input type="number" id="flog-ph" class="form-control" step="0.1"></div>
+      </div>
+      <div class="form-row">
+        <div class="form-group"><label>O₂ (mg/L)</label><input type="number" id="flog-o2" class="form-control" step="0.1"></div>
+        <div class="form-group"></div>
+      </div>
+      <div class="form-group"><label>Notes</label><textarea id="flog-notes" class="form-control" rows="2"></textarea></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-outline" onclick="closeModal('modal-add-fish-log')">Cancel</button>
+      <button class="btn btn-primary" onclick="submitFishLog()"><i class="fas fa-save"></i> Save</button>
+    </div>
+  </div>
+</div>
+
+<!-- Add Task -->
+<div class="modal-backdrop" id="modal-add-task">
+  <div class="modal-box">
+    <div class="modal-header"><h3>Add Task</h3><button class="modal-close" onclick="closeModal('modal-add-task')">&times;</button></div>
+    <div class="modal-body">
+      <div class="form-group"><label>Task Title *</label><input type="text" id="task-title" class="form-control" placeholder="e.g. Apply fertilizer"></div>
+      <div class="form-row">
+        <div class="form-group"><label>Category</label><select id="task-cat" class="form-control"><option>Crops</option><option>Livestock</option><option>Poultry</option><option>Fish</option><option>General</option><option>Finance</option><option>Maintenance</option></select></div>
+        <div class="form-group"><label>Priority</label><select id="task-priority" class="form-control"><option>High</option><option>Medium</option><option>Low</option></select></div>
+      </div>
+      <div class="form-row">
+        <div class="form-group"><label>Due Date</label><input type="date" id="task-due" class="form-control"></div>
+        <div class="form-group"><label>Assigned To</label><input type="text" id="task-assigned" class="form-control"></div>
+      </div>
+      <div class="form-group"><label>Notes</label><textarea id="task-notes" class="form-control" rows="2"></textarea></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-outline" onclick="closeModal('modal-add-task')">Cancel</button>
+      <button class="btn btn-primary" onclick="submitAddTask()"><i class="fas fa-save"></i> Save Task</button>
+    </div>
+  </div>
+</div>
+
+<!-- Add Calendar Event -->
+<div class="modal-backdrop" id="modal-add-event">
+  <div class="modal-box">
+    <div class="modal-header"><h3>Add Calendar Event</h3><button class="modal-close" onclick="closeModal('modal-add-event')">&times;</button></div>
+    <div class="modal-body">
+      <div class="form-group"><label>Event Title *</label><input type="text" id="evt-title" class="form-control"></div>
+      <div class="form-row">
+        <div class="form-group"><label>Category</label><select id="evt-cat" class="form-control"><option>Planting</option><option>Harvesting</option><option>Vaccination</option><option>Feeding</option><option>Market</option><option>Holiday</option><option>Other</option></select></div>
+        <div class="form-group"><label>Color</label><input type="color" id="evt-color" class="form-control" value="#4CAF50" style="padding:6px;height:44px;"></div>
+      </div>
+      <div class="form-row">
+        <div class="form-group"><label>Event Date *</label><input type="date" id="evt-date" class="form-control"></div>
+        <div class="form-group"><label>End Date</label><input type="date" id="evt-end-date" class="form-control"></div>
+      </div>
+      <div class="form-group"><label>Notes</label><textarea id="evt-notes" class="form-control" rows="2"></textarea></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-outline" onclick="closeModal('modal-add-event')">Cancel</button>
+      <button class="btn btn-primary" onclick="submitAddEvent()"><i class="fas fa-save"></i> Save Event</button>
+    </div>
+  </div>
+</div>
+
+<!-- Image Lightbox -->
+<div class="modal-backdrop" id="modal-lightbox">
+  <div class="modal-box" style="max-width:700px;">
+    <div class="modal-header">
+      <h3 id="lightbox-title">Photo</h3>
+      <button class="modal-close" onclick="closeModal('modal-lightbox')">&times;</button>
+    </div>
+    <div class="modal-body" style="padding:0;">
+      <img id="lightbox-img" style="width:100%;display:block;border-radius:0 0 var(--radius-lg) var(--radius-lg);" alt="Farm photo">
+    </div>
+    <div class="modal-footer">
+      <input type="text" id="lightbox-label-input" class="form-control" placeholder="Add a label..." style="flex:1;">
+      <button class="btn btn-primary btn-sm" onclick="saveLightboxLabel()"><i class="fas fa-save"></i> Save Label</button>
+      <button class="btn btn-danger btn-sm" onclick="deleteLightboxMedia()"><i class="fas fa-trash"></i></button>
+    </div>
+  </div>
+</div>
+
+<!-- Draw Boundary Modal -->
+<div class="modal-backdrop" id="modal-save-boundary">
+  <div class="modal-box" style="max-width:400px;">
+    <div class="modal-header"><h3>Save Field Boundary</h3><button class="modal-close" onclick="closeModal('modal-save-boundary')">&times;</button></div>
+    <div class="modal-body">
+      <div class="form-group"><label>Boundary Label *</label><input type="text" id="boundary-label" class="form-control" placeholder="e.g. North Field, Main Farm"></div>
+      <div class="form-group"><label>Color</label><input type="color" id="boundary-color" class="form-control" value="#4CAF50" style="padding:6px;height:44px;"></div>
+      <div class="form-group"><label>Notes</label><textarea id="boundary-notes" class="form-control" rows="2"></textarea></div>
+      <p id="boundary-area" style="font-size:13px;color:var(--text-muted);margin-top:8px;"></p>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-outline" onclick="closeModal('modal-save-boundary');cancelDrawing()">Cancel</button>
+      <button class="btn btn-primary" onclick="confirmSaveBoundary()"><i class="fas fa-save"></i> Save Boundary</button>
+    </div>
+  </div>
+</div>
+
+<!-- Toast container -->
+<div id="toast-container"></div>
+
+<!-- ══════════════════════════════════════════════════════════
+     JAVASCRIPT
+══════════════════════════════════════════════════════════ -->
+<script>
+// ═══════════════════════════════════════════════════════════
+// CONFIG
+// ═══════════════════════════════════════════════════════════
+const SHEET_ID      = '1dD3ZZE3xLWar-SPTbja0RjRHVvSoHbTrcMw-LfapB-s';
+const APPS_SCRIPT   = 'https://script.google.com/macros/s/AKfycbysniyo7RXBMZmU4tXKFkQDTFBOSp-1w1vJSg61580opAL4xGOrpxqcZGa7fW1Z8h8U/exec';
+const OPENSHEET     = (tab) => `https://opensheet.elk.sh/${SHEET_ID}/${tab}`;
+const WEATHER_KEY   = '3818abb08e0bf8ffe897731ab4210e5c';
+const DRIVE_FOLDER  = '1r4xz1qU20KWI36XJuDLAv6FhhfFu6Ukx';
+
+// ── App State ──
+let STATE = {
+  user: null,
+  farm: null,
+  farms: [],
+  plots: [], livestock: [], poultry: [], ponds: [],
+  tasks: [], events: [], media: [], boundaries: [],
+  plotLogs: [], healthLogs: [], eggLogs: [], fishLogs: [],
+  charts: {},
+  calYear: new Date().getFullYear(),
+  calMonth: new Date().getMonth(),
+  mapInstance: null,
+  drawnPolygon: null,
+  drawingMode: false,
+  drawPoints: [],
+  currentMediaID: null,
+  pendingFiles: [],
+  weatherData: null,
+};
+
+// ═══════════════════════════════════════════════════════════
+// API HELPERS
+// ═══════════════════════════════════════════════════════════
+async function osGet(tab) {
+  try {
+    const r = await fetch(OPENSHEET(encodeURIComponent(tab)));
+    if (!r.ok) throw new Error(`HTTP ${r.status}`);
+    const data = await r.json();
+    return Array.isArray(data) ? data : [];
+  } catch(e) {
+    console.warn('osGet error [' + tab + ']:', e);
+    return [];
+  }
+}
+
+async function asPost(payload) {
+  try {
+    const r = await fetch(APPS_SCRIPT, {
+      method: 'POST',
+      mode: 'no-cors',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    });
+    // no-cors returns opaque response; assume success if no throw
+    return { success: true };
+  } catch(e) {
+    console.error('appsScript error:', e);
+    return { success: false, error: e.message };
+  }
+}
+
+async function asGet(params) {
+  const url = new URL(APPS_SCRIPT);
+  Object.keys(params).forEach(k => url.searchParams.set(k, params[k]));
+  try {
+    const r = await fetch(url.toString());
+    return await r.json();
+  } catch(e) {
+    console.warn('asGet error:', e);
+    return null;
+  }
+}
+
+// Generate simple ID for optimistic UI
+function uid(prefix) {
+  return (prefix || 'id') + '_' + Math.random().toString(36).substr(2,10);
+}
+
+function today() { return new Date().toISOString().split('T')[0]; }
+
+// ═══════════════════════════════════════════════════════════
+// TOAST NOTIFICATIONS
+// ═══════════════════════════════════════════════════════════
+function toast(msg, type='success', duration=3500) {
+  const el = document.createElement('div');
+  el.className = `toast ${type}`;
+  const icons = { success:'fa-check-circle', error:'fa-exclamation-circle', warning:'fa-exclamation-triangle' };
+  el.innerHTML = `<i class="fas ${icons[type]||'fa-info-circle'}"></i> ${msg}`;
+  const container = document.getElementById('toast-container');
+  container.appendChild(el);
+  setTimeout(() => {
+    el.style.animation = 'toastOut .3s ease forwards';
+    setTimeout(() => el.remove(), 300);
+  }, duration);
+}
+
+// ═══════════════════════════════════════════════════════════
+// MODAL HELPERS
+// ═══════════════════════════════════════════════════════════
+function openModal(id) {
+  const el = document.getElementById(id);
+  if (el) el.classList.add('show');
+}
+function closeModal(id) {
+  const el = document.getElementById(id);
+  if (el) el.classList.remove('show');
+}
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape') document.querySelectorAll('.modal-backdrop.show').forEach(m => m.classList.remove('show'));
+});
+document.querySelectorAll('.modal-backdrop').forEach(m => {
+  m.addEventListener('click', e => { if (e.target === m) m.classList.remove('show'); });
+});
+
+// ═══════════════════════════════════════════════════════════
+// LOADING
+// ═══════════════════════════════════════════════════════════
+function showLoading(msg='Loading...') {
+  document.getElementById('loading-msg').textContent = msg;
+  document.getElementById('loading-overlay').classList.add('show');
+}
+function hideLoading() {
+  document.getElementById('loading-overlay').classList.remove('show');
+}
+
+// ═══════════════════════════════════════════════════════════
+// NAVIGATION
+// ═══════════════════════════════════════════════════════════
+function navigateTo(section) {
+  // Update nav
+  document.querySelectorAll('.nav-item').forEach(n => {
+    n.classList.toggle('active', n.dataset.section === section);
+  });
+  // Show section
+  document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+  const target = document.getElementById('section-' + section);
+  if (target) target.classList.add('active');
+  // Close mobile sidebar
+  closeSidebar();
+  // Lazy-load section data
+  onSectionActivate(section);
+}
+
+function onSectionActivate(section) {
+  const handlers = {
+    dashboard:  refreshDashboard,
+    plots:      loadPlots,
+    livestock:  loadLivestock,
+    poultry:    loadPoultry,
+    fish:       loadFishPonds,
+    tasks:      loadTasks,
+    calendar:   renderCalendar,
+    analytics:  loadAnalytics,
+    weather:    refreshWeather,
+    map:        initOrRefreshMap,
+    media:      loadMedia,
+    activity:   loadActivityLog,
+    settings:   loadSettings,
+    diagnose:   () => {},
+  };
+  if (handlers[section]) handlers[section]();
+}
+
+// Tab switching
+document.addEventListener('click', e => {
+  if (e.target.classList.contains('tab') && e.target.dataset.tabgroup) {
+    const group = e.target.dataset.tabgroup;
+    const tabId = e.target.dataset.tab;
+    document.querySelectorAll(`[data-tabgroup="${group}"]`).forEach(t => t.classList.remove('active'));
+    e.target.classList.add('active');
+    const section = document.getElementById('section-' + group) || document.body;
+    section.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+    const panel = document.getElementById('tab-' + tabId);
+    if (panel) panel.classList.add('active');
+  }
+});
+
+// Sidebar nav
+document.querySelectorAll('.nav-item').forEach(n => {
+  n.addEventListener('click', () => navigateTo(n.dataset.section));
+});
+
+function openSidebar()  { document.getElementById('sidebar').classList.add('mobile-open'); document.getElementById('sidebar-overlay').classList.add('show'); }
+function closeSidebar() { document.getElementById('sidebar').classList.remove('mobile-open'); document.getElementById('sidebar-overlay').classList.remove('show'); }
+
+// ═══════════════════════════════════════════════════════════
+// LOGIN / AUTH
+// ═══════════════════════════════════════════════════════════
+let loginStep = 'email'; // 'email' | 'login' | 'newuser'
+let foundUser = null;
+let foundFarms = [];
+
+document.getElementById('login-email').addEventListener('blur', checkEmail);
+document.getElementById('login-email').addEventListener('input', () => {
+  document.getElementById('welcome-banner').classList.remove('show');
+  document.getElementById('farm-name-group').style.display = 'none';
+  loginStep = 'email'; foundUser = null;
+});
+
+async function checkEmail() {
+  const email = document.getElementById('login-email').value.trim();
+  if (!email.includes('@')) return;
+
+  showLoading('Checking account...');
+  try {
+    const users = await osGet('Users');
+    const match = users.find(u => u.Email && u.Email.toLowerCase() === email.toLowerCase());
+    if (match) {
+      foundUser = match;
+      // Get their farms
+      const allFarms = await osGet('Farms');
+      foundFarms = allFarms.filter(f => f.OwnerUserID === match.UserID);
+      const farmName = foundFarms.length ? foundFarms[0].FarmName : 'your farm';
+
+      // Show welcome banner
+      document.getElementById('welcome-message').textContent = `Welcome back, ${match.DisplayName}! 👋`;
+      document.getElementById('welcome-farm-name').textContent = `Farm: ${farmName}`;
+      document.getElementById('welcome-banner').classList.add('show');
+      document.getElementById('login-btn-text').textContent = 'Login';
+      document.getElementById('farm-name-group').style.display = 'none';
+      loginStep = 'returning';
+    } else {
+      foundUser = null;
+      document.getElementById('welcome-banner').classList.remove('show');
+      document.getElementById('farm-name-group').style.display = 'block';
+      document.getElementById('farm-name-hint').textContent = '(new account)';
+      document.getElementById('login-btn-text').textContent = 'Register & Login';
+      loginStep = 'new';
+    }
+  } catch(e) {
+    console.warn('checkEmail error:', e);
+  }
+  hideLoading();
+}
+
+async function handleLogin() {
+  const email = document.getElementById('login-email').value.trim();
+  if (!email) { toast('Please enter your email address.', 'error'); return; }
+
+  if (loginStep === 'email') { await checkEmail(); return; }
+
+  if (loginStep === 'returning' && foundUser) {
+    // Existing user — load their farm
+    showLoading('Loading your farm...');
+    STATE.user = foundUser;
+    STATE.farms = foundFarms;
+    STATE.farm = foundFarms[0] || null;
+    // Update last login via Apps Script (fire and forget)
+    asPost({ action: 'updateLastLogin', userID: foundUser.UserID });
+    await initApp();
+    return;
+  }
+
+  if (loginStep === 'new') {
+    const farmName = document.getElementById('login-farm-name').value.trim();
+    if (!farmName) { toast('Please enter your farm name.', 'error'); return; }
+    // Redirect to registration with pre-filled email + farm name
+    document.getElementById('reg-email').value = email;
+    document.getElementById('reg-farm-name').value = farmName;
+    showRegister();
+    return;
+  }
+}
+
+async function handleRegister() {
+  const name     = document.getElementById('reg-name').value.trim();
+  const email    = document.getElementById('reg-email').value.trim();
+  const phone    = document.getElementById('reg-phone').value.trim();
+  const farmName = document.getElementById('reg-farm-name').value.trim();
+  const farmType = document.getElementById('reg-farm-type').value;
+  const farmSize = document.getElementById('reg-farm-size').value;
+  const location = document.getElementById('reg-farm-location').value.trim();
+
+  if (!name || !email || !farmName) { toast('Please fill in all required fields.', 'error'); return; }
+
+  showLoading('Creating your account...');
+
+  // Check for duplicate email
+  const users = await osGet('Users');
+  if (users.find(u => u.Email && u.Email.toLowerCase() === email.toLowerCase())) {
+    hideLoading();
+    toast('This email is already registered. Please login instead.', 'error');
+    showLogin();
+    return;
+  }
+
+  // Build user + farm objects locally (Apps Script will persist)
+  const userID  = uid('usr');
+  const farmID  = uid('frm');
+  const newUser = {
+    UserID: userID, Email: email.toLowerCase(), DisplayName: name, Phone: phone,
+    AvatarUrl: '', CreatedAt: new Date().toISOString(), LastLoginAt: new Date().toISOString(), Role: 'owner'
+  };
+  const newFarm = {
+    FarmID: farmID, OwnerUserID: userID, FarmName: farmName, FarmType: farmType,
+    Location: location, Latitude: '', Longitude: '', SizeAcres: farmSize,
+    EstablishedDate: today(), Description: '', LogoUrl: '',
+    CreatedAt: new Date().toISOString(), UpdatedAt: new Date().toISOString()
+  };
+
+  // Send to Apps Script
+  await asPost({ action: 'createUser', email, displayName: name, phone });
+  await asPost({ action: 'createFarm', ownerUserID: userID, farmName, farmType, location, sizeAcres: farmSize });
+
+  STATE.user = newUser;
+  STATE.farm = newFarm;
+  STATE.farms = [newFarm];
+  await initApp();
+}
+
+async function initApp() {
+  if (!STATE.user || !STATE.farm) {
+    hideLoading(); toast('Could not load farm data.', 'error'); return;
+  }
+  showLoading('Loading farm data...');
+
+  // Populate sidebar
+  document.getElementById('sidebar-farm-name').textContent = STATE.farm.FarmName || 'My Farm';
+  document.getElementById('sidebar-farm-type').textContent = STATE.farm.FarmType || '';
+  document.getElementById('sidebar-user-name').textContent = STATE.user.DisplayName || STATE.user.Email;
+  document.getElementById('sidebar-user-email').textContent = STATE.user.Email;
+  const initials = (STATE.user.DisplayName || 'U').split(' ').map(w=>w[0]).join('').substring(0,2).toUpperCase();
+  document.getElementById('sidebar-avatar').textContent = initials;
+
+  // Show app, hide login
+  document.getElementById('login-screen').style.display = 'none';
+  document.getElementById('app-shell').classList.add('visible');
+
+  // Load initial data
+  await Promise.all([
+    loadAllData(),
+  ]);
+
+  hideLoading();
+  setDashboardGreeting();
+  refreshDashboard();
+  refreshWeather();
+}
+
+async function loadAllData() {
+  const fid = STATE.farm?.FarmID;
+  if (!fid) return;
+
+  const [plots, ls, ptr, fish, tasks, events, media, boundaries, plotLogs, healthLogs, eggLogs, fishLogs] = await Promise.all([
+    osGet('Plots'), osGet('Livestock'), osGet('Poultry'), osGet('FishPonds'),
+    osGet('Tasks'), osGet('CalendarEvents'), osGet('Media'), osGet('FarmBoundary'),
+    osGet('PlotDailyLog'), osGet('LivestockHealthLog'), osGet('PoultryEggLog'), osGet('FishFeedLog'),
+  ]);
+
+  STATE.plots      = plots.filter(r => r.FarmID === fid);
+  STATE.livestock  = ls.filter(r => r.FarmID === fid);
+  STATE.poultry    = ptr.filter(r => r.FarmID === fid);
+  STATE.ponds      = fish.filter(r => r.FarmID === fid);
+  STATE.tasks      = tasks.filter(r => r.FarmID === fid);
+  STATE.events     = events.filter(r => r.FarmID === fid);
+  STATE.media      = media.filter(r => r.FarmID === fid);
+  STATE.boundaries = boundaries.filter(r => r.FarmID === fid);
+  STATE.plotLogs   = plotLogs.filter(r => r.FarmID === fid);
+  STATE.healthLogs = healthLogs.filter(r => r.FarmID === fid);
+  STATE.eggLogs    = eggLogs.filter(r => r.FarmID === fid);
+  STATE.fishLogs   = fishLogs.filter(r => r.FarmID === fid);
+
+  updateTaskBadge();
+}
+
+function updateTaskBadge() {
+  const pending = STATE.tasks.filter(t => t.Status === 'Pending' || t.Status === 'In Progress').length;
+  const badge = document.getElementById('nav-task-badge');
+  if (pending > 0) { badge.style.display = ''; badge.textContent = pending; }
+  else badge.style.display = 'none';
+}
+
+function showRegister() { document.getElementById('login-form').style.display = 'none'; document.getElementById('register-form').style.display = 'block'; }
+function showLogin()    { document.getElementById('register-form').style.display = 'none'; document.getElementById('login-form').style.display = 'block'; }
+
+function logout() {
+  STATE = { user:null, farm:null, farms:[], plots:[], livestock:[], poultry:[], ponds:[], tasks:[], events:[], media:[], boundaries:[], plotLogs:[], healthLogs:[], eggLogs:[], fishLogs:[], charts:{}, calYear:new Date().getFullYear(), calMonth:new Date().getMonth(), mapInstance:null, drawnPolygon:null, drawingMode:false, drawPoints:[], currentMediaID:null, pendingFiles:[], weatherData:null };
+  document.getElementById('app-shell').classList.remove('visible');
+  document.getElementById('login-screen').style.display = '';
+  document.getElementById('welcome-banner').classList.remove('show');
+  document.getElementById('login-email').value = '';
+  document.getElementById('farm-name-group').style.display = 'none';
+  document.getElementById('login-btn-text').textContent = 'Continue';
+  loginStep = 'email'; foundUser = null; foundFarms = [];
+  showLogin();
+}
+function confirmLogout() { if (confirm('Are you sure you want to logout?')) logout(); }
+
+// ═══════════════════════════════════════════════════════════
+// DASHBOARD
+// ═══════════════════════════════════════════════════════════
+function setDashboardGreeting() {
+  const h = new Date().getHours();
+  const greet = h < 12 ? 'Good Morning' : h < 17 ? 'Good Afternoon' : 'Good Evening';
+  document.getElementById('dash-greeting').textContent = `${greet}, ${STATE.user?.DisplayName?.split(' ')[0] || 'Farmer'} 🌱`;
+  document.getElementById('dash-date').textContent = new Date().toLocaleDateString('en-NG', { weekday:'long', year:'numeric', month:'long', day:'numeric' });
+}
+
+async function refreshDashboard() {
+  if (!STATE.farm) return;
+  await loadAllData();
+  setDashboardGreeting();
+
+  // Stats
+  const activePlots = STATE.plots.filter(p => p.Status === 'Active').length;
+  const totalLS = STATE.livestock.reduce((s,l) => s + (Number(l.Count)||0), 0);
+  const totalPtr = STATE.poultry.reduce((s,p) => s + (Number(p.Quantity)||0), 0);
+  const totalFish = STATE.ponds.reduce((s,p) => s + (Number(p.StockCount)||0), 0);
+
+  document.getElementById('stat-plots').textContent     = activePlots;
+  document.getElementById('stat-livestock').textContent = totalLS.toLocaleString();
+  document.getElementById('stat-poultry').textContent   = totalPtr.toLocaleString();
+  document.getElementById('stat-fish').textContent      = totalFish.toLocaleString();
+
+  // Tasks
+  renderDashTasks();
+  // Recent photos
+  renderDashPhotos();
+  // Yield chart
+  renderYieldChart('chart-dash-yield', 6);
+}
+
+function renderDashTasks() {
+  const pending = STATE.tasks.filter(t => t.Status !== 'Done' && t.Status !== 'Cancelled').slice(0,5);
+  const container = document.getElementById('dash-task-list');
+  if (!pending.length) { container.innerHTML = '<div class="empty-state" style="padding:20px;"><i class="fas fa-check-circle" style="font-size:28px;"></i><p style="margin-top:8px;">All tasks complete!</p></div>'; return; }
+  container.innerHTML = pending.map(t => {
+    const pClass = `priority-${(t.Priority||'medium').toLowerCase()}`;
+    return `<div class="task-item">
+      <div class="task-check ${t.Status==='Done'?'done':''}" onclick="quickCompleteTask('${t.TaskID}')">
+        ${t.Status==='Done' ? '<i class="fas fa-check"></i>' : ''}
+      </div>
+      <div class="task-body">
+        <div class="task-title">${t.Title||''}</div>
+        <div class="task-meta"><span><i class="fas fa-tag"></i> ${t.Category||''}</span>${t.DueDate?`<span><i class="fas fa-calendar"></i> ${t.DueDate}</span>`:''}</div>
+      </div>
+      <span class="${pClass}">${t.Priority||'Medium'}</span>
+    </div>`;
+  }).join('');
+}
+
+function renderDashPhotos() {
+  const recent = STATE.media.slice(0,3);
+  const container = document.getElementById('dash-recent-photos');
+  if (!recent.length) {
+    container.innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:20px;color:var(--text-muted);font-size:13px;"><i class="fas fa-images" style="font-size:28px;color:var(--primary-light);display:block;margin-bottom:8px;"></i>No photos yet</div>';
+    return;
+  }
+  container.innerHTML = recent.map(m =>
+    `<div class="media-item" onclick="openLightbox('${m.MediaID}')">
+      <img src="${m.ThumbnailUrl || m.ViewUrl}" alt="${m.Label||'Farm photo'}" loading="lazy" onerror="this.src='https://via.placeholder.com/200x200/E8F5E9/388E3C?text=📷'">
+    </div>`
+  ).join('');
+}
+
+// ═══════════════════════════════════════════════════════════
+// PLOTS
+// ═══════════════════════════════════════════════════════════
+function loadPlots() {
+  const tbody = document.getElementById('plots-table-body');
+  if (!STATE.plots.length) {
+    tbody.innerHTML = '<tr><td colspan="7"><div class="empty-state"><i class="fas fa-seedling"></i><h4>No plots yet</h4><p>Click "Add Plot" to add your first plot.</p></div></td></tr>';
+    return;
+  }
+  tbody.innerHTML = STATE.plots.map(p => {
+    const statusBadge = { Active:'badge-green', Preparing:'badge-blue', Harvesting:'badge-orange', Fallow:'badge-gray' }[p.Status] || 'badge-gray';
+    return `<tr>
+      <td><strong>${p.PlotName||''}</strong></td>
+      <td>${p.CropType||'-'}</td>
+      <td>${p.SizeAcres||'-'}</td>
+      <td>${p.PlantingDate||'-'}</td>
+      <td>${p.ExpectedHarvestDate||'-'}</td>
+      <td><span class="badge ${statusBadge}">${p.Status||'-'}</span></td>
+      <td>
+        <button class="action-btn del" onclick="deletePlot('${p.PlotID}')"><i class="fas fa-trash"></i></button>
+      </td>
+    </tr>`;
+  }).join('');
+
+  // Populate plot filter dropdowns
+  populatePlotDropdowns();
+}
+
+function populatePlotDropdowns() {
+  const opts = STATE.plots.map(p => `<option value="${p.PlotID}">${p.PlotName}</option>`).join('');
+  ['log-plot-filter', 'plog-plot'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.innerHTML = '<option value="">All Plots</option>' + opts;
+  });
+}
+
+function loadPlotLogs() {
+  const filterID = document.getElementById('log-plot-filter')?.value;
+  const logs = filterID ? STATE.plotLogs.filter(l => l.PlotID === filterID) : STATE.plotLogs;
+  const tbody = document.getElementById('plot-log-body');
+  if (!logs.length) {
+    tbody.innerHTML = '<tr><td colspan="8" style="text-align:center;padding:24px;color:var(--text-muted);">No log entries found</td></tr>';
+    return;
+  }
+  const plotMap = {};
+  STATE.plots.forEach(p => plotMap[p.PlotID] = p.PlotName);
+  tbody.innerHTML = logs.sort((a,b) => b.LogDate > a.LogDate ? 1 : -1).map(l =>
+    `<tr>
+      <td>${l.LogDate||'-'}</td>
+      <td>${plotMap[l.PlotID]||l.PlotID||'-'}</td>
+      <td><span class="badge badge-green">${l.Activity||'-'}</span></td>
+      <td>${l.Details||'-'}</td>
+      <td>${l.InputsUsed||'-'}</td>
+      <td>${l.CostNGN ? '₦'+Number(l.CostNGN).toLocaleString() : '-'}</td>
+      <td>${l.YieldKgToday ? l.YieldKgToday+' kg' : '-'}</td>
+      <td>${l.WorkerName||'-'}</td>
+    </tr>`
+  ).join('');
+}
+
+async function submitAddPlot() {
+  const name = document.getElementById('plot-name').value.trim();
+  const crop = document.getElementById('plot-crop').value.trim();
+  if (!name || !crop) { toast('Plot name and crop type are required.', 'error'); return; }
+
+  showLoading('Saving plot...');
+  const data = {
+    PlotID: uid('plt'), FarmID: STATE.farm.FarmID, PlotName: name, CropType: crop,
+    SizeAcres: document.getElementById('plot-size').value,
+    SoilType: document.getElementById('plot-soil').value,
+    IrrigationType: document.getElementById('plot-irrigation').value,
+    Status: document.getElementById('plot-status').value,
+    PlantingDate: document.getElementById('plot-planting-date').value,
+    ExpectedHarvestDate: document.getElementById('plot-harvest-date').value,
+    Notes: document.getElementById('plot-notes').value,
+    YieldKg: 0, CreatedAt: new Date().toISOString(), UpdatedAt: new Date().toISOString()
+  };
+
+  STATE.plots.push(data);
+  await asPost({ action: 'addPlot', farmID: STATE.farm.FarmID, data });
+  closeModal('modal-add-plot');
+  loadPlots();
+  hideLoading();
+  toast('Plot added successfully!');
+}
+
+async function deletePlot(plotID) {
+  if (!confirm('Delete this plot?')) return;
+  STATE.plots = STATE.plots.filter(p => p.PlotID !== plotID);
+  await asPost({ action: 'deletePlot', plotID, farmID: STATE.farm.FarmID });
+  loadPlots();
+  toast('Plot deleted.', 'warning');
+}
+
+async function submitPlotLog() {
+  const plotID = document.getElementById('plog-plot').value;
+  const activity = document.getElementById('plog-activity').value;
+  if (!plotID || !activity) { toast('Please select a plot and activity.', 'error'); return; }
+
+  showLoading('Saving log...');
+  const data = {
+    LogID: uid('pdl'), FarmID: STATE.farm.FarmID, PlotID: plotID,
+    LogDate: document.getElementById('plog-date').value || today(),
+    Activity: activity,
+    Details: document.getElementById('plog-details').value,
+    InputsUsed: document.getElementById('plog-inputs').value,
+    CostNGN: document.getElementById('plog-cost').value || 0,
+    YieldKgToday: document.getElementById('plog-yield').value || 0,
+    WorkerName: document.getElementById('plog-worker').value,
+    CreatedAt: new Date().toISOString()
+  };
+  STATE.plotLogs.push(data);
+  await asPost({ action: 'addPlotLog', farmID: STATE.farm.FarmID, plotID, data });
+  closeModal('modal-add-plot-log');
+  loadPlotLogs();
+  hideLoading();
+  toast('Log entry saved!');
+}
+
+// ═══════════════════════════════════════════════════════════
+// LIVESTOCK
+// ═══════════════════════════════════════════════════════════
+function loadLivestock() {
+  const tbody = document.getElementById('livestock-table-body');
+  if (!STATE.livestock.length) {
+    tbody.innerHTML = '<tr><td colspan="8"><div class="empty-state"><i class="fas fa-cow"></i><h4>No livestock recorded</h4></div></td></tr>';
+  } else {
+    tbody.innerHTML = STATE.livestock.map(l => {
+      const st = l.Status === 'Active' ? 'badge-green' : l.Status === 'Sold' ? 'badge-blue' : 'badge-red';
+      return `<tr>
+        <td><strong>${l.AnimalType||''}</strong></td>
+        <td>${l.Breed||'-'}</td>
+        <td><strong>${l.Count||0}</strong></td>
+        <td>${l.AgeGroupMonths ? l.AgeGroupMonths+' mo' : '-'}</td>
+        <td>${l.FeedType||'-'}</td>
+        <td>${l.HousingLocation||'-'}</td>
+        <td><span class="badge ${st}">${l.Status||'-'}</span></td>
+        <td>
+          <button class="action-btn del" onclick="deleteLivestock('${l.LivestockID}')"><i class="fas fa-trash"></i></button>
+        </td>
+      </tr>`;
+    }).join('');
+  }
+  // Populate dropdowns
+  const opts = STATE.livestock.map(l => `<option value="${l.LivestockID}">${l.AnimalType} (${l.Breed||''})</option>`).join('');
+  ['health-livestock-filter','hlog-livestock'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.innerHTML = '<option value="">All Animals</option>' + opts;
+  });
+}
+
+function loadHealthLogs() {
+  const filterID = document.getElementById('health-livestock-filter')?.value;
+  const logs = filterID ? STATE.healthLogs.filter(l => l.LivestockID === filterID) : STATE.healthLogs;
+  const tbody = document.getElementById('health-log-body');
+  const lsMap = {}; STATE.livestock.forEach(l => lsMap[l.LivestockID] = l.AnimalType + (l.Breed ? ' / '+l.Breed : ''));
+  if (!logs.length) { tbody.innerHTML = '<tr><td colspan="8" style="text-align:center;padding:24px;color:var(--text-muted);">No health events recorded</td></tr>'; return; }
+  tbody.innerHTML = logs.sort((a,b) => b.LogDate > a.LogDate ? 1 : -1).map(l =>
+    `<tr>
+      <td>${l.LogDate||'-'}</td>
+      <td>${lsMap[l.LivestockID]||l.LivestockID||'-'}</td>
+      <td><span class="badge badge-blue">${l.EventType||'-'}</span></td>
+      <td>${l.Description||'-'}</td>
+      <td>${l.VetName||'-'}</td>
+      <td>${l.DrugUsed||'-'}</td>
+      <td>${l.CountAffected||'-'}</td>
+      <td>${l.CostNGN ? '₦'+Number(l.CostNGN).toLocaleString() : '-'}</td>
+    </tr>`
+  ).join('');
+}
+
+async function submitAddLivestock() {
+  const type = document.getElementById('ls-type').value;
+  const count = document.getElementById('ls-count').value;
+  if (!type || !count) { toast('Animal type and count are required.', 'error'); return; }
+  showLoading('Saving...');
+  const data = {
+    LivestockID: uid('lvs'), FarmID: STATE.farm.FarmID,
+    AnimalType: type, Breed: document.getElementById('ls-breed').value,
+    Count: count, AgeGroupMonths: document.getElementById('ls-age').value,
+    GenderSplit: document.getElementById('ls-gender').value,
+    FeedType: document.getElementById('ls-feed').value,
+    FeedingSchedule: document.getElementById('ls-schedule').value,
+    HousingLocation: document.getElementById('ls-housing').value,
+    Status: 'Active', Notes: document.getElementById('ls-notes').value,
+    CreatedAt: new Date().toISOString(), UpdatedAt: new Date().toISOString()
+  };
+  STATE.livestock.push(data);
+  await asPost({ action: 'addLivestock', farmID: STATE.farm.FarmID, data });
+  closeModal('modal-add-livestock');
+  loadLivestock();
+  hideLoading();
+  toast('Livestock added!');
+}
+
+async function deleteLivestock(id) {
+  if (!confirm('Delete this livestock record?')) return;
+  STATE.livestock = STATE.livestock.filter(l => l.LivestockID !== id);
+  await asPost({ action: 'deleteLivestock', livestockID: id, farmID: STATE.farm.FarmID });
+  loadLivestock();
+  toast('Livestock record deleted.', 'warning');
+}
+
+async function submitHealthLog() {
+  const lsID = document.getElementById('hlog-livestock').value;
+  const evType = document.getElementById('hlog-event').value;
+  if (!lsID || !evType) { toast('Please select an animal group and event type.', 'error'); return; }
+  showLoading('Saving...');
+  const data = {
+    HealthLogID: uid('hlg'), FarmID: STATE.farm.FarmID, LivestockID: lsID,
+    LogDate: document.getElementById('hlog-date').value || today(),
+    EventType: evType, Description: document.getElementById('hlog-desc').value,
+    VetName: document.getElementById('hlog-vet').value, DrugUsed: document.getElementById('hlog-drug').value,
+    CountAffected: document.getElementById('hlog-count').value || 0,
+    CountChange: document.getElementById('hlog-change').value || 0,
+    CostNGN: document.getElementById('hlog-cost').value || 0,
+    CreatedAt: new Date().toISOString()
+  };
+  STATE.healthLogs.push(data);
+  await asPost({ action: 'addHealthLog', farmID: STATE.farm.FarmID, livestockID: lsID, data });
+  closeModal('modal-add-health-log');
+  loadHealthLogs();
+  hideLoading();
+  toast('Health event logged!');
+}
+
+// ═══════════════════════════════════════════════════════════
+// POULTRY
+// ═══════════════════════════════════════════════════════════
+function loadPoultry() {
+  const tbody = document.getElementById('poultry-table-body');
+  if (!STATE.poultry.length) {
+    tbody.innerHTML = '<tr><td colspan="8"><div class="empty-state"><i class="fas fa-egg"></i><h4>No poultry flocks recorded</h4></div></td></tr>';
+  } else {
+    tbody.innerHTML = STATE.poultry.map(p => {
+      const st = p.Status === 'Active' ? 'badge-green' : 'badge-gray';
+      return `<tr>
+        <td><strong>${p.BirdType||''}</strong></td>
+        <td>${p.Breed||'-'}</td>
+        <td><strong>${p.Quantity||0}</strong></td>
+        <td>${p.AgeWeeks||'-'}</td>
+        <td>${p.FeedType||'-'}</td>
+        <td>${p.EggProductionPerDay ? p.EggProductionPerDay+'/day' : 'N/A'}</td>
+        <td><span class="badge ${st}">${p.Status||'-'}</span></td>
+        <td><button class="action-btn del" onclick="deletePoultry('${p.PoultryID}')"><i class="fas fa-trash"></i></button></td>
+      </tr>`;
+    }).join('');
+  }
+  const opts = STATE.poultry.map(p => `<option value="${p.PoultryID}">${p.BirdType} (${p.Breed||''})</option>`).join('');
+  ['egg-poultry-filter','elog-poultry'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.innerHTML = '<option value="">All Flocks</option>' + opts;
+  });
+}
+
+function loadEggLogs() {
+  const filterID = document.getElementById('egg-poultry-filter')?.value;
+  const logs = filterID ? STATE.eggLogs.filter(l => l.PoultryID === filterID) : STATE.eggLogs;
+  const tbody = document.getElementById('egg-log-body');
+  const ptrMap = {}; STATE.poultry.forEach(p => ptrMap[p.PoultryID] = p.BirdType);
+  if (!logs.length) { tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;padding:24px;color:var(--text-muted);">No production logs</td></tr>'; return; }
+  tbody.innerHTML = logs.sort((a,b) => b.LogDate > a.LogDate ? 1 : -1).map(l =>
+    `<tr>
+      <td>${l.LogDate||'-'}</td>
+      <td>${ptrMap[l.PoultryID]||'-'}</td>
+      <td><strong>${l.EggsCollected||0}</strong></td>
+      <td>${l.EggsBroken||0}</td>
+      <td>${l.MortalityCount||0}</td>
+      <td>${l.FeedConsumedKg||0}</td>
+      <td>${l.Notes||'-'}</td>
+    </tr>`
+  ).join('');
+}
+
+async function submitAddPoultry() {
+  const type = document.getElementById('ptr-type').value;
+  const qty = document.getElementById('ptr-qty').value;
+  if (!type || !qty) { toast('Bird type and quantity are required.', 'error'); return; }
+  showLoading('Saving...');
+  const data = {
+    PoultryID: uid('ptr'), FarmID: STATE.farm.FarmID,
+    BirdType: type, Breed: document.getElementById('ptr-breed').value,
+    Quantity: qty, AgeWeeks: document.getElementById('ptr-age').value,
+    FeedType: document.getElementById('ptr-feed').value,
+    FeedingSchedule: document.getElementById('ptr-schedule').value,
+    EggProductionPerDay: document.getElementById('ptr-eggs').value || 0,
+    HousingPenID: document.getElementById('ptr-pen').value,
+    Status: 'Active', Notes: document.getElementById('ptr-notes').value,
+    CreatedAt: new Date().toISOString(), UpdatedAt: new Date().toISOString()
+  };
+  STATE.poultry.push(data);
+  await asPost({ action: 'addPoultry', farmID: STATE.farm.FarmID, data });
+  closeModal('modal-add-poultry');
+  loadPoultry();
+  hideLoading();
+  toast('Poultry flock added!');
+}
+
+async function deletePoultry(id) {
+  if (!confirm('Delete this poultry record?')) return;
+  STATE.poultry = STATE.poultry.filter(p => p.PoultryID !== id);
+  await asPost({ action: 'deletePoultry', poultryID: id, farmID: STATE.farm.FarmID });
+  loadPoultry();
+  toast('Poultry deleted.', 'warning');
+}
+
+async function submitEggLog() {
+  const pID = document.getElementById('elog-poultry').value;
+  if (!pID) { toast('Please select a flock.', 'error'); return; }
+  showLoading('Saving...');
+  const data = {
+    EggLogID: uid('elg'), FarmID: STATE.farm.FarmID, PoultryID: pID,
+    LogDate: document.getElementById('elog-date').value || today(),
+    EggsCollected: document.getElementById('elog-eggs').value || 0,
+    EggsBroken: document.getElementById('elog-broken').value || 0,
+    MortalityCount: document.getElementById('elog-mortality').value || 0,
+    FeedConsumedKg: document.getElementById('elog-feed').value || 0,
+    Notes: document.getElementById('elog-notes').value,
+    CreatedAt: new Date().toISOString()
+  };
+  STATE.eggLogs.push(data);
+  await asPost({ action: 'addEggLog', farmID: STATE.farm.FarmID, poultryID: pID, data });
+  closeModal('modal-add-egg-log');
+  loadEggLogs();
+  hideLoading();
+  toast('Production log saved!');
+}
+
+// ═══════════════════════════════════════════════════════════
+// FISH PONDS
+// ═══════════════════════════════════════════════════════════
+function loadFishPonds() {
+  const tbody = document.getElementById('fish-table-body');
+  if (!STATE.ponds.length) {
+    tbody.innerHTML = '<tr><td colspan="8"><div class="empty-state"><i class="fas fa-fish"></i><h4>No fish ponds recorded</h4></div></td></tr>';
+  } else {
+    tbody.innerHTML = STATE.ponds.map(p => {
+      const st = p.Status === 'Active' ? 'badge-green' : p.Status === 'Harvested' ? 'badge-blue' : 'badge-gray';
+      return `<tr>
+        <td><strong>${p.PondName||''}</strong></td>
+        <td>${p.FishType||'-'}</td>
+        <td><strong>${Number(p.StockCount||0).toLocaleString()}</strong></td>
+        <td>${p.FeedingSchedule||'-'}</td>
+        <td>${p.PondSizeM2||'-'}</td>
+        <td>${p.LastHarvestDate||'-'}</td>
+        <td><span class="badge ${st}">${p.Status||'-'}</span></td>
+        <td><button class="action-btn del" onclick="deleteFishPond('${p.PondID}')"><i class="fas fa-trash"></i></button></td>
+      </tr>`;
+    }).join('');
+  }
+  const opts = STATE.ponds.map(p => `<option value="${p.PondID}">${p.PondName} (${p.FishType})</option>`).join('');
+  ['fish-pond-filter','flog-pond'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.innerHTML = '<option value="">All Ponds</option>' + opts;
+  });
+}
+
+function loadFishLogs() {
+  const filterID = document.getElementById('fish-pond-filter')?.value;
+  const logs = filterID ? STATE.fishLogs.filter(l => l.PondID === filterID) : STATE.fishLogs;
+  const tbody = document.getElementById('fish-log-body');
+  const pondMap = {}; STATE.ponds.forEach(p => pondMap[p.PondID] = p.PondName);
+  if (!logs.length) { tbody.innerHTML = '<tr><td colspan="8" style="text-align:center;padding:24px;color:var(--text-muted);">No logs recorded</td></tr>'; return; }
+  tbody.innerHTML = logs.sort((a,b) => b.LogDate > a.LogDate ? 1 : -1).map(l =>
+    `<tr>
+      <td>${l.LogDate||'-'}</td>
+      <td>${pondMap[l.PondID]||'-'}</td>
+      <td>${l.FeedAmountKg||0} kg</td>
+      <td>${l.MortalityCount||0}</td>
+      <td>${l.WaterTempC||'-'}</td>
+      <td>${l.PHLevel||'-'}</td>
+      <td>${l.OxygenMgL||'-'}</td>
+      <td>${l.Notes||'-'}</td>
+    </tr>`
+  ).join('');
+}
+
+async function submitAddPond() {
+  const name = document.getElementById('pond-name').value.trim();
+  const type = document.getElementById('pond-fish').value;
+  if (!name || !type) { toast('Pond name and fish type are required.', 'error'); return; }
+  showLoading('Saving...');
+  const data = {
+    PondID: uid('pnd'), FarmID: STATE.farm.FarmID, PondName: name, FishType: type,
+    StockCount: document.getElementById('pond-stock').value || 0,
+    StockingDate: document.getElementById('pond-stocking-date').value,
+    FeedType: document.getElementById('pond-feed').value,
+    FeedingSchedule: document.getElementById('pond-schedule').value,
+    WaterSourceType: document.getElementById('pond-water').value,
+    PondSizeM2: document.getElementById('pond-size').value,
+    WaterDepthM: document.getElementById('pond-depth').value,
+    LastHarvestDate: '', LastHarvestKg: 0,
+    Status: 'Active', Notes: document.getElementById('pond-notes').value,
+    CreatedAt: new Date().toISOString(), UpdatedAt: new Date().toISOString()
+  };
+  STATE.ponds.push(data);
+  await asPost({ action: 'addFishPond', farmID: STATE.farm.FarmID, data });
+  closeModal('modal-add-pond');
+  loadFishPonds();
+  hideLoading();
+  toast('Fish pond added!');
+}
+
+async function deleteFishPond(id) {
+  if (!confirm('Delete this pond record?')) return;
+  STATE.ponds = STATE.ponds.filter(p => p.PondID !== id);
+  await asPost({ action: 'deleteFishPond', pondID: id, farmID: STATE.farm.FarmID });
+  loadFishPonds();
+  toast('Pond deleted.', 'warning');
+}
+
+async function submitFishLog() {
+  const pID = document.getElementById('flog-pond').value;
+  if (!pID) { toast('Please select a pond.', 'error'); return; }
+  showLoading('Saving...');
+  const data = {
+    FishLogID: uid('flg'), FarmID: STATE.farm.FarmID, PondID: pID,
+    LogDate: document.getElementById('flog-date').value || today(),
+    FeedAmountKg: document.getElementById('flog-feed').value || 0,
+    MortalityCount: document.getElementById('flog-mortality').value || 0,
+    WaterTempC: document.getElementById('flog-temp').value,
+    PHLevel: document.getElementById('flog-ph').value,
+    OxygenMgL: document.getElementById('flog-o2').value,
+    Notes: document.getElementById('flog-notes').value,
+    CreatedAt: new Date().toISOString()
+  };
+  STATE.fishLogs.push(data);
+  await asPost({ action: 'addFishLog', farmID: STATE.farm.FarmID, pondID: pID, data });
+  closeModal('modal-add-fish-log');
+  loadFishLogs();
+  hideLoading();
+  toast('Fish log saved!');
+}
+
+// ═══════════════════════════════════════════════════════════
+// TASKS
+// ═══════════════════════════════════════════════════════════
+function loadTasks() {
+  const statusFilter = document.getElementById('task-filter-status')?.value;
+  let tasks = [...STATE.tasks];
+  if (statusFilter) tasks = tasks.filter(t => t.Status === statusFilter);
+  tasks.sort((a,b) => (a.DueDate||'') > (b.DueDate||'') ? 1 : -1);
+
+  const container = document.getElementById('tasks-container');
+  if (!tasks.length) {
+    container.innerHTML = '<div class="empty-state"><i class="fas fa-tasks"></i><h4>No tasks found</h4><p>Click "Add Task" to create your first task.</p></div>';
+    return;
+  }
+  container.innerHTML = tasks.map(t => {
+    const pClass = `priority-${(t.Priority||'medium').toLowerCase()}`;
+    const isDone = t.Status === 'Done';
+    const isOverdue = t.DueDate && t.DueDate < today() && !isDone;
+    return `<div class="task-item" style="${isDone ? 'opacity:0.5;' : ''}">
+      <div class="task-check ${isDone?'done':''}" onclick="quickCompleteTask('${t.TaskID}')">
+        ${isDone ? '<i class="fas fa-check" style="font-size:10px;"></i>' : ''}
+      </div>
+      <div class="task-body">
+        <div class="task-title" style="${isDone?'text-decoration:line-through;':''}">${t.Title||''}</div>
+        <div class="task-meta">
+          <span><i class="fas fa-tag"></i> ${t.Category||''}</span>
+          ${t.DueDate ? `<span style="color:${isOverdue?'var(--danger)':''}"><i class="fas fa-calendar"></i> ${t.DueDate}${isOverdue?' (Overdue)':''}</span>` : ''}
+          ${t.AssignedTo ? `<span><i class="fas fa-user"></i> ${t.AssignedTo}</span>` : ''}
+        </div>
+      </div>
+      <div style="display:flex;align-items:center;gap:8px;">
+        <span class="${pClass}">${t.Priority||'Medium'}</span>
+        <span class="badge ${t.Status==='Done'?'badge-green':t.Status==='In Progress'?'badge-blue':'badge-gray'}" style="font-size:11px;">${t.Status||'Pending'}</span>
+        <button class="action-btn del" onclick="deleteTask('${t.TaskID}')"><i class="fas fa-trash"></i></button>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+async function submitAddTask() {
+  const title = document.getElementById('task-title').value.trim();
+  if (!title) { toast('Task title is required.', 'error'); return; }
+  showLoading('Saving...');
+  const data = {
+    TaskID: uid('tsk'), FarmID: STATE.farm.FarmID, Title: title,
+    Category: document.getElementById('task-cat').value,
+    Priority: document.getElementById('task-priority').value,
+    DueDate: document.getElementById('task-due').value,
+    AssignedTo: document.getElementById('task-assigned').value,
+    Notes: document.getElementById('task-notes').value,
+    Status: 'Pending', CreatedByUserID: STATE.user?.UserID,
+    CreatedAt: new Date().toISOString(), UpdatedAt: new Date().toISOString()
+  };
+  STATE.tasks.push(data);
+  await asPost({ action: 'addTask', farmID: STATE.farm.FarmID, data });
+  closeModal('modal-add-task');
+  loadTasks(); updateTaskBadge(); renderDashTasks();
+  hideLoading();
+  toast('Task created!');
+}
+
+async function quickCompleteTask(taskID) {
+  const task = STATE.tasks.find(t => t.TaskID === taskID);
+  if (!task) return;
+  task.Status = task.Status === 'Done' ? 'Pending' : 'Done';
+  task.CompletedAt = task.Status === 'Done' ? new Date().toISOString() : '';
+  await asPost({ action: 'updateTask', taskID, farmID: STATE.farm.FarmID, updates: { Status: task.Status, CompletedAt: task.CompletedAt } });
+  loadTasks(); updateTaskBadge(); renderDashTasks();
+}
+
+async function deleteTask(taskID) {
+  if (!confirm('Delete this task?')) return;
+  STATE.tasks = STATE.tasks.filter(t => t.TaskID !== taskID);
+  await asPost({ action: 'deleteTask', taskID, farmID: STATE.farm.FarmID });
+  loadTasks(); updateTaskBadge();
+  toast('Task deleted.', 'warning');
+}
+
+// ═══════════════════════════════════════════════════════════
+// CALENDAR
+// ═══════════════════════════════════════════════════════════
+function calNav(dir) {
+  STATE.calMonth += dir;
+  if (STATE.calMonth > 11) { STATE.calMonth = 0; STATE.calYear++; }
+  if (STATE.calMonth < 0)  { STATE.calMonth = 11; STATE.calYear--; }
+  renderCalendar();
+}
+
+function renderCalendar() {
+  const year = STATE.calYear, month = STATE.calMonth;
+  const monthNames = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+  document.getElementById('cal-month-label').textContent = `${monthNames[month]} ${year}`;
+
+  const firstDay = new Date(year, month, 1).getDay();
+  const daysInMonth = new Date(year, month+1, 0).getDate();
+  const daysInPrev = new Date(year, month, 0).getDate();
+  const todayStr = today();
+
+  // Build day cells
+  const dayPrefix = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+  let html = dayPrefix.map(d => `<div class="cal-header">${d}</div>`).join('');
+
+  // Prev month fill
+  for (let i = firstDay-1; i >= 0; i--) {
+    html += `<div class="cal-day other-month"><div class="cal-day-num">${daysInPrev-i}</div></div>`;
+  }
+
+  // Current month
+  for (let d = 1; d <= daysInMonth; d++) {
+    const dateStr = `${year}-${String(month+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+    const isToday = dateStr === todayStr;
+    const dayEvents = STATE.events.filter(e => e.EventDate === dateStr || (e.EventDate <= dateStr && e.EndDate >= dateStr));
+    const evHtml = dayEvents.slice(0,2).map(e =>
+      `<div class="cal-event" style="background:${e.Color||'#4CAF50'}22;color:${e.Color||'#388E3C'};border-left:2px solid ${e.Color||'#4CAF50'};">${e.Title||''}</div>`
+    ).join('') + (dayEvents.length > 2 ? `<div class="cal-event" style="color:var(--text-muted);">+${dayEvents.length-2} more</div>` : '');
+    html += `<div class="cal-day${isToday?' today':''}" onclick="showDayEvents('${dateStr}')">
+      <div class="cal-day-num">${d}</div>
+      ${evHtml}
+    </div>`;
+  }
+
+  // Fill remaining
+  const total = firstDay + daysInMonth;
+  const remaining = total % 7 === 0 ? 0 : 7 - (total % 7);
+  for (let i = 1; i <= remaining; i++) {
+    html += `<div class="cal-day other-month"><div class="cal-day-num">${i}</div></div>`;
+  }
+
+  document.getElementById('calendar-grid').innerHTML = html;
+  document.getElementById('cal-events-today').innerHTML = '';
+}
+
+function showDayEvents(dateStr) {
+  const events = STATE.events.filter(e => e.EventDate === dateStr || (e.EventDate <= dateStr && e.EndDate >= dateStr));
+  const container = document.getElementById('cal-events-today');
+  if (!events.length) { container.innerHTML = `<p style="color:var(--text-muted);font-size:13px;margin-top:8px;">No events on ${dateStr}</p>`; return; }
+  container.innerHTML = `<h4 style="font-size:14px;font-weight:700;margin-bottom:10px;color:var(--primary-dark);">Events on ${dateStr}</h4>` +
+    events.map(e =>
+      `<div style="display:flex;align-items:center;gap:10px;padding:8px;background:${e.Color||'#4CAF50'}11;border-radius:8px;margin-bottom:6px;border-left:3px solid ${e.Color||'#4CAF50'};">
+        <div style="flex:1;"><div style="font-weight:600;font-size:14px;">${e.Title||''}</div><div style="font-size:12px;color:var(--text-muted);">${e.Category||''} ${e.Notes?'· '+e.Notes:''}</div></div>
+        <button class="action-btn del" onclick="deleteEvent('${e.EventID}')"><i class="fas fa-trash"></i></button>
+      </div>`
+    ).join('');
+}
+
+async function submitAddEvent() {
+  const title = document.getElementById('evt-title').value.trim();
+  const date = document.getElementById('evt-date').value;
+  if (!title || !date) { toast('Event title and date are required.', 'error'); return; }
+  showLoading('Saving...');
+  const data = {
+    EventID: uid('evt'), FarmID: STATE.farm.FarmID, Title: title,
+    Category: document.getElementById('evt-cat').value,
+    EventDate: date,
+    EndDate: document.getElementById('evt-end-date').value || date,
+    Color: document.getElementById('evt-color').value,
+    Notes: document.getElementById('evt-notes').value,
+    AllDay: true, CreatedByUserID: STATE.user?.UserID,
+    CreatedAt: new Date().toISOString()
+  };
+  STATE.events.push(data);
+  await asPost({ action: 'addCalendarEvent', farmID: STATE.farm.FarmID, data });
+  closeModal('modal-add-event');
+  renderCalendar();
+  hideLoading();
+  toast('Event added!');
+}
+
+async function deleteEvent(eventID) {
+  if (!confirm('Delete this event?')) return;
+  STATE.events = STATE.events.filter(e => e.EventID !== eventID);
+  await asPost({ action: 'deleteCalendarEvent', eventID, farmID: STATE.farm.FarmID });
+  renderCalendar();
+  showDayEvents('');
+  toast('Event deleted.', 'warning');
+}
+
+// ═══════════════════════════════════════════════════════════
+// WEATHER (OpenWeatherMap)
+// ═══════════════════════════════════════════════════════════
+const WX_ICON_MAP = {
+  '01d':'fa-sun','01n':'fa-moon','02d':'fa-cloud-sun','02n':'fa-cloud-moon',
+  '03d':'fa-cloud','03n':'fa-cloud','04d':'fa-clouds','04n':'fa-clouds',
+  '09d':'fa-cloud-showers-heavy','09n':'fa-cloud-showers-heavy',
+  '10d':'fa-cloud-rain','10n':'fa-cloud-rain',
+  '11d':'fa-bolt','11n':'fa-bolt','13d':'fa-snowflake','13n':'fa-snowflake',
+  '50d':'fa-smog','50n':'fa-smog'
+};
+
+async function refreshWeather() {
+  const loc = STATE.farm?.Location || 'Abuja, Nigeria';
+  const label = STATE.farm?.Latitude && STATE.farm?.Longitude
+    ? `${STATE.farm.Latitude},${STATE.farm.Longitude}`
+    : loc;
+  document.getElementById('weather-location-label').textContent = loc;
+
+  try {
+    // Current weather
+    const qParam = STATE.farm?.Latitude && STATE.farm?.Longitude
+      ? `lat=${STATE.farm.Latitude}&lon=${STATE.farm.Longitude}`
+      : `q=${encodeURIComponent(loc)}`;
+
+    const [curRes, foreRes] = await Promise.all([
+      fetch(`https://api.openweathermap.org/data/2.5/weather?${qParam}&appid=${WEATHER_KEY}&units=metric`),
+      fetch(`https://api.openweathermap.org/data/2.5/forecast?${qParam}&appid=${WEATHER_KEY}&units=metric&cnt=40`)
+    ]);
+
+    if (!curRes.ok) throw new Error('Weather API error');
+    const cur = await curRes.json();
+    const fore = await foreRes.json();
+
+    STATE.weatherData = { cur, fore };
+    renderCurrentWeather(cur);
+    renderForecast(fore);
+    renderWeatherAdvice(cur);
+    renderDashWeather(cur);
+  } catch(e) {
+    console.warn('Weather error:', e);
+    document.getElementById('weather-current-display').innerHTML =
+      '<div style="padding:20px;text-align:center;color:var(--text-muted);"><i class="fas fa-exclamation-triangle" style="color:var(--warning);font-size:32px;margin-bottom:10px;display:block;"></i><p>Could not load weather data. Please check your internet connection.</p></div>';
+  }
+}
+
+function renderCurrentWeather(cur) {
+  const icon = WX_ICON_MAP[cur.weather[0].icon] || 'fa-cloud';
+  const html = `<div class="weather-current">
+    <div class="weather-icon-big"><i class="fas ${icon}" style="color:${cur.weather[0].icon.startsWith('01')?'#FFC107':'#5c9bd1'};"></i></div>
+    <div>
+      <div class="weather-temp">${Math.round(cur.main.temp)}°C</div>
+      <div class="weather-condition">${cur.weather[0].description.replace(/\b\w/g,c=>c.toUpperCase())}</div>
+      <div class="weather-details-row">
+        <span><i class="fas fa-tint" style="color:#2196F3;"></i> ${cur.main.humidity}% humidity</span>
+        <span><i class="fas fa-wind" style="color:#607D8B;"></i> ${Math.round(cur.wind.speed)} m/s</span>
+        <span><i class="fas fa-thermometer-half" style="color:#F44336;"></i> Feels ${Math.round(cur.main.feels_like)}°C</span>
+        <span><i class="fas fa-eye" style="color:#9C27B0;"></i> ${(cur.visibility/1000).toFixed(1)} km</span>
+      </div>
+    </div>
+  </div>`;
+  document.getElementById('weather-current-display').innerHTML = html;
+}
+
+function renderForecast(fore) {
+  // Group by day (take midday reading)
+  const days = {};
+  fore.list.forEach(item => {
+    const d = item.dt_txt.split(' ')[0];
+    if (!days[d] || item.dt_txt.includes('12:00:00')) days[d] = item;
+  });
+
+  const strip = Object.values(days).slice(0, 5);
+  const dayNames = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat','Today'];
+  const todayStr = today();
+
+  document.getElementById('weather-forecast-strip').innerHTML = strip.map(item => {
+    const d = new Date(item.dt * 1000);
+    const name = item.dt_txt.split(' ')[0] === todayStr ? 'Today' : dayNames[d.getDay()];
+    const icon = WX_ICON_MAP[item.weather[0].icon] || 'fa-cloud';
+    const rain = item.pop ? Math.round(item.pop * 100) + '% rain' : '';
+    return `<div class="forecast-day-card">
+      <div class="day-name">${name}</div>
+      <div class="day-icon"><i class="fas ${icon}" style="color:${item.weather[0].icon.startsWith('01')?'#FFC107':'#5c9bd1'};"></i></div>
+      <div class="day-temp">${Math.round(item.main.temp_max)}° / ${Math.round(item.main.temp_min)}°</div>
+      ${rain ? `<div class="day-rain"><i class="fas fa-tint"></i> ${rain}</div>` : ''}
+    </div>`;
+  }).join('');
+}
+
+function renderWeatherAdvice(cur) {
+  const temp = cur.main.temp;
+  const humid = cur.main.humidity;
+  const condition = cur.weather[0].main;
+  const advice = [];
+
+  if (condition === 'Rain' || condition === 'Drizzle') {
+    advice.push('Delay spray applications — rain will wash off chemicals');
+    advice.push('Good time to plant — soil moisture is adequate');
+    advice.push('Check drainage in low-lying plots to avoid waterlogging');
+  } else if (condition === 'Clear' && temp > 30) {
+    advice.push('Water crops early morning or evening to reduce evaporation');
+    advice.push('Check livestock water troughs — replenish frequently in heat');
+    advice.push('Ideal conditions for harvesting dry crops');
+  } else if (condition === 'Clouds') {
+    advice.push('Good conditions for transplanting seedlings');
+    advice.push('Moderate conditions — good for pesticide or herbicide application');
+  } else {
+    advice.push('Monitor soil moisture levels regularly');
+    advice.push('Good conditions for general farm activities');
+  }
+
+  if (humid > 80) advice.push('High humidity — watch for fungal diseases on crops');
+  if (temp < 15) advice.push('Cool temperatures — protect young seedlings from cold stress');
+
+  const list = document.getElementById('weather-advice-list');
+  if (list) list.innerHTML = advice.map(a => `<li>${a}</li>`).join('');
+}
+
+function renderDashWeather(cur) {
+  const icon = WX_ICON_MAP[cur.weather[0].icon] || 'fa-cloud';
+  document.getElementById('dash-weather').innerHTML = `
+    <div style="display:flex;align-items:center;gap:16px;padding:12px 0;">
+      <i class="fas ${icon}" style="font-size:48px;color:${cur.weather[0].icon.startsWith('01')?'#FFC107':'#5c9bd1'};"></i>
+      <div>
+        <div style="font-size:36px;font-weight:800;line-height:1;">${Math.round(cur.main.temp)}°C</div>
+        <div style="font-weight:600;font-size:15px;">${cur.weather[0].description.replace(/\b\w/g,c=>c.toUpperCase())}</div>
+        <div style="font-size:12px;color:var(--text-muted);margin-top:4px;">${cur.name} · Humidity ${cur.main.humidity}%</div>
+      </div>
+    </div>`;
+}
+
+// ═══════════════════════════════════════════════════════════
+// MAP + POLYGON DRAWING
+// ═══════════════════════════════════════════════════════════
+let leafletMap = null, leafletPolygons = [], drawLayer = null, drawMarkers = [];
+
+function initOrRefreshMap() {
+  const farm = STATE.farm;
+  const lat = parseFloat(farm?.Latitude) || 6.5244;
+  const lng = parseFloat(farm?.Longitude) || 3.3792;
+
+  if (!leafletMap) {
+    leafletMap = L.map('farm-map').setView([lat, lng], 14);
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      attribution: '© OpenStreetMap contributors', maxZoom: 19
+    }).addTo(leafletMap);
+
+    // Satellite layer option
+    const satellite = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
+      attribution: 'Esri World Imagery'
+    });
+    L.control.layers({ 'Street': L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {attribution:'© OpenStreetMap'}), 'Satellite': satellite }).addTo(leafletMap);
+
+    // Farm marker
+    L.marker([lat, lng]).addTo(leafletMap).bindPopup(`<b>${farm?.FarmName||'My Farm'}</b><br>${farm?.Location||''}`).openPopup();
+
+    // Click handler for drawing
+    leafletMap.on('click', onMapClick);
+    document.addEventListener('keydown', onMapKeydown);
+  } else {
+    leafletMap.setView([lat, lng], 14);
+  }
+
+  loadBoundariesOnMap();
+  renderBoundariesList();
+}
+
+function onMapClick(e) {
+  if (!STATE.drawingMode) return;
+  STATE.drawPoints.push([e.latlng.lat, e.latlng.lng]);
+
+  // Draw point marker
+  const m = L.circleMarker(e.latlng, { radius:6, color:'#4CAF50', fillColor:'#4CAF50', fillOpacity:1 }).addTo(leafletMap);
+  drawMarkers.push(m);
+
+  // Refresh preview polygon
+  if (drawLayer) leafletMap.removeLayer(drawLayer);
+  if (STATE.drawPoints.length >= 2) {
+    drawLayer = L.polygon(STATE.drawPoints, { color:'#4CAF50', fillOpacity:0.2, dashArray:'6,6' }).addTo(leafletMap);
+  }
+
+  // First point clicked again = close shape
+  if (STATE.drawPoints.length >= 3) {
+    const first = STATE.drawPoints[0];
+    const dist = e.latlng.distanceTo(L.latLng(first[0], first[1]));
+    if (dist < 20) finishDrawing();
+  }
+}
+
+function onMapKeydown(e) {
+  if (!STATE.drawingMode) return;
+  if (e.key === 'Enter') finishDrawing();
+  if (e.key === 'Escape') cancelDrawing();
+}
+
+function startDrawing() {
+  STATE.drawingMode = true;
+  STATE.drawPoints = [];
+  drawMarkers = [];
+  leafletMap.getContainer().style.cursor = 'crosshair';
+  document.getElementById('draw-instructions').classList.add('show');
+  document.getElementById('save-map-btn').disabled = false;
+  toast('Drawing mode on — click to place points. Press Enter or click first point to finish.', 'warning', 5000);
+}
+
+function cancelDrawing() {
+  STATE.drawingMode = false;
+  STATE.drawPoints = [];
+  leafletMap.getContainer().style.cursor = '';
+  document.getElementById('draw-instructions').classList.remove('show');
+  if (drawLayer) { leafletMap.removeLayer(drawLayer); drawLayer = null; }
+  drawMarkers.forEach(m => leafletMap.removeLayer(m));
+  drawMarkers = [];
+}
+
+function finishDrawing() {
+  if (STATE.drawPoints.length < 3) { toast('Draw at least 3 points to create a boundary.', 'error'); return; }
+  STATE.drawingMode = false;
+  leafletMap.getContainer().style.cursor = '';
+  document.getElementById('draw-instructions').classList.remove('show');
+  drawMarkers.forEach(m => leafletMap.removeLayer(m));
+  drawMarkers = [];
+
+  // Calculate area
+  const area = calcPolygonArea(STATE.drawPoints);
+  document.getElementById('boundary-area').textContent = `Calculated area: ≈ ${area.toFixed(0)} m² (${(area/4047).toFixed(2)} acres)`;
+
+  // Show save modal
+  STATE.drawnPolygon = { points: [...STATE.drawPoints], area };
+  openModal('modal-save-boundary');
+}
+
+function saveDrawnBoundary() {
+  if (!STATE.drawPoints.length) { startDrawing(); return; }
+  finishDrawing();
+}
+
+async function confirmSaveBoundary() {
+  const label = document.getElementById('boundary-label').value.trim();
+  if (!label) { toast('Please enter a boundary label.', 'error'); return; }
+
+  showLoading('Saving boundary...');
+  const data = {
+    BoundaryID: uid('bnd'), FarmID: STATE.farm.FarmID, Label: label,
+    CoordinatesJSON: JSON.stringify(STATE.drawnPolygon?.points || STATE.drawPoints),
+    AreaM2: STATE.drawnPolygon?.area?.toFixed(0) || '',
+    Color: document.getElementById('boundary-color').value,
+    Notes: document.getElementById('boundary-notes').value,
+    CreatedByUserID: STATE.user?.UserID,
+    CreatedAt: new Date().toISOString(), UpdatedAt: new Date().toISOString()
+  };
+
+  STATE.boundaries.push(data);
+  await asPost({ action: 'saveBoundary', farmID: STATE.farm.FarmID, data });
+  if (drawLayer) { leafletMap.removeLayer(drawLayer); drawLayer = null; }
+
+  closeModal('modal-save-boundary');
+  loadBoundariesOnMap();
+  renderBoundariesList();
+  hideLoading();
+  toast(`Boundary "${label}" saved!`);
+  STATE.drawPoints = [];
+}
+
+function loadBoundariesOnMap() {
+  // Clear existing boundary polygons
+  leafletPolygons.forEach(p => leafletMap.removeLayer(p));
+  leafletPolygons = [];
+
+  STATE.boundaries.forEach(b => {
+    try {
+      const coords = JSON.parse(b.CoordinatesJSON || '[]');
+      if (coords.length < 3) return;
+      const poly = L.polygon(coords, {
+        color: b.Color || '#4CAF50',
+        fillColor: b.Color || '#4CAF50',
+        fillOpacity: 0.2,
+        weight: 2
+      }).addTo(leafletMap).bindPopup(`<b>${b.Label||'Boundary'}</b>${b.AreaM2?`<br>Area: ${Number(b.AreaM2).toLocaleString()} m²`:''}`);
+      leafletPolygons.push(poly);
+    } catch(e) { console.warn('Boundary parse error:', e); }
+  });
+
+  renderMapLegend();
+}
+
+function renderMapLegend() {
+  const legend = document.getElementById('map-legend');
+  if (!legend) return;
+  legend.innerHTML = STATE.boundaries.map(b =>
+    `<div class="map-legend-item">
+      <div class="map-legend-dot" style="background:${b.Color||'#4CAF50'};"></div>
+      <span style="font-size:13px;">${b.Label||'Boundary'}</span>
+    </div>`
+  ).join('') || '<span style="font-size:13px;color:var(--text-muted);">No boundaries saved yet</span>';
+}
+
+function renderBoundariesList() {
+  const container = document.getElementById('boundaries-list');
+  if (!STATE.boundaries.length) {
+    container.innerHTML = '<p style="color:var(--text-muted);font-size:14px;">No saved boundaries yet. Use "Draw Field" to map your farm.</p>';
+    return;
+  }
+  container.innerHTML = STATE.boundaries.map(b => {
+    let coords = [];
+    try { coords = JSON.parse(b.CoordinatesJSON || '[]'); } catch(e) {}
+    return `<div style="display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid var(--border);">
+      <div style="width:12px;height:12px;border-radius:3px;background:${b.Color||'#4CAF50'};flex-shrink:0;"></div>
+      <div style="flex:1;">
+        <div style="font-weight:700;font-size:14px;">${b.Label||'Boundary'}</div>
+        <div style="font-size:12px;color:var(--text-muted);">${coords.length} points${b.AreaM2?` · ${Number(b.AreaM2).toLocaleString()} m²`:''} ${b.Notes?'· '+b.Notes:''}</div>
+      </div>
+      <button class="action-btn del" onclick="deleteBoundary('${b.BoundaryID}')"><i class="fas fa-trash"></i></button>
+    </div>`;
+  }).join('');
+}
+
+async function deleteBoundary(id) {
+  if (!confirm('Delete this boundary?')) return;
+  STATE.boundaries = STATE.boundaries.filter(b => b.BoundaryID !== id);
+  await asPost({ action: 'deleteBoundary', boundaryID: id, farmID: STATE.farm.FarmID });
+  loadBoundariesOnMap();
+  renderBoundariesList();
+  toast('Boundary deleted.', 'warning');
+}
+
+async function clearAllBoundaries() {
+  if (!confirm('Delete ALL saved boundaries? This cannot be undone.')) return;
+  showLoading('Clearing...');
+  for (const b of STATE.boundaries) {
+    await asPost({ action: 'deleteBoundary', boundaryID: b.BoundaryID, farmID: STATE.farm.FarmID });
+  }
+  STATE.boundaries = [];
+  loadBoundariesOnMap();
+  renderBoundariesList();
+  hideLoading();
+  toast('All boundaries cleared.', 'warning');
+}
+
+function resetMapView() {
+  if (leafletMap && STATE.farm) {
+    const lat = parseFloat(STATE.farm.Latitude) || 6.5244;
+    const lng = parseFloat(STATE.farm.Longitude) || 3.3792;
+    leafletMap.setView([lat, lng], 14);
+  }
+}
+
+// Shoelace formula for polygon area in m²
+function calcPolygonArea(points) {
+  const R = 6371000;
+  let area = 0;
+  const n = points.length;
+  for (let i = 0; i < n; i++) {
+    const [lat1,lng1] = points[i];
+    const [lat2,lng2] = points[(i+1)%n];
+    const x1 = lng1 * (Math.PI/180) * R * Math.cos(lat1*(Math.PI/180));
+    const y1 = lat1 * (Math.PI/180) * R;
+    const x2 = lng2 * (Math.PI/180) * R * Math.cos(lat2*(Math.PI/180));
+    const y2 = lat2 * (Math.PI/180) * R;
+    area += (x1*y2 - x2*y1);
+  }
+  return Math.abs(area/2);
+}
+
+// ═══════════════════════════════════════════════════════════
+// MEDIA GALLERY (Google Drive)
+// ═══════════════════════════════════════════════════════════
+let pendingUploads = []; // { file, name, label, category }
+
+function handleFileUpload(files) {
+  if (!files || !files.length) return;
+  pendingUploads = Array.from(files);
+  const container = document.getElementById('upload-label-inputs');
+  container.innerHTML = pendingUploads.map((f, i) => `
+    <div style="display:flex;gap:10px;align-items:center;margin-bottom:10px;padding:10px;background:var(--surface2);border-radius:var(--radius-sm);">
+      <i class="fas fa-image" style="color:var(--primary);font-size:18px;"></i>
+      <div style="flex:1;min-width:0;">
+        <div style="font-size:13px;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${f.name}</div>
+        <div style="display:flex;gap:8px;margin-top:6px;flex-wrap:wrap;">
+          <input type="text" id="upload-label-${i}" class="form-control" style="flex:1;min-width:150px;font-size:12px;padding:6px 10px;" placeholder="Label/caption...">
+          <select id="upload-cat-${i}" class="form-control" style="width:130px;font-size:12px;padding:6px 10px;">
+            <option>General</option><option>Plot</option><option>Livestock</option><option>Poultry</option><option>Fish</option><option>Equipment</option>
+          </select>
+        </div>
+      </div>
+    </div>`
+  ).join('');
+  document.getElementById('upload-label-fields').style.display = 'block';
+  document.getElementById('upload-zone').style.display = 'none';
+  // Reset input
+  document.getElementById('upload-file-input').value = '';
+}
+
+async function confirmUpload() {
+  if (!pendingUploads.length) return;
+  showLoading('Uploading photos...');
+
+  for (let i = 0; i < pendingUploads.length; i++) {
+    const file = pendingUploads[i];
+    const label = document.getElementById(`upload-label-${i}`)?.value || '';
+    const category = document.getElementById(`upload-cat-${i}`)?.value || 'General';
+
+    // Convert to base64 and upload via Apps Script
+    const base64 = await fileToBase64(file);
+    const result = await asPost({
+      action: 'uploadMedia',
+      farmID: STATE.farm.FarmID,
+      fileName: file.name,
+      mimeType: file.type,
+      base64Data: base64,
+      label, category,
+      uploadedByUserID: STATE.user?.UserID,
+      driveFolderID: DRIVE_FOLDER
+    });
+
+    // Optimistic: add placeholder to STATE.media
+    STATE.media.unshift({
+      MediaID: uid('med'), FarmID: STATE.farm.FarmID,
+      DriveFileID: '', FileName: file.name, Label: label,
+      Category: category, ThumbnailUrl: URL.createObjectURL(file),
+      ViewUrl: URL.createObjectURL(file), MimeType: file.type,
+      SizeBytes: file.size, UploadedByUserID: STATE.user?.UserID,
+      UploadedAt: new Date().toISOString()
+    });
+  }
+
+  cancelUpload();
+  hideLoading();
+  loadMedia();
+  toast(`${pendingUploads.length} photo(s) uploaded!`);
+  pendingUploads = [];
+}
+
+function cancelUpload() {
+  pendingUploads = [];
+  document.getElementById('upload-label-fields').style.display = 'none';
+  document.getElementById('upload-zone').style.display = '';
+}
+
+function fileToBase64(file) {
+  return new Promise((res, rej) => {
+    const r = new FileReader();
+    r.onload = () => res(r.result.split(',')[1]);
+    r.onerror = () => rej(new Error('File read failed'));
+    r.readAsDataURL(file);
+  });
+}
+
+function loadMedia() {
+  const catFilter = document.getElementById('media-category-filter')?.value;
+  let media = catFilter ? STATE.media.filter(m => m.Category === catFilter) : STATE.media;
+  const grid = document.getElementById('media-grid');
+  const count = document.getElementById('media-count');
+  if (count) count.textContent = `(${media.length})`;
+
+  if (!media.length) {
+    grid.innerHTML = '<div class="empty-state" style="grid-column:1/-1;"><i class="fas fa-images"></i><h4>No photos yet</h4><p>Upload your first farm photo above.</p></div>';
+    return;
+  }
+  grid.innerHTML = media.map(m => `
+    <div class="media-item" onclick="openLightbox('${m.MediaID}')">
+      <img src="${m.ThumbnailUrl || m.ViewUrl || 'https://via.placeholder.com/200x200/E8F5E9/388E3C?text=📷'}" 
+           alt="${m.Label||m.FileName||'Farm photo'}" loading="lazy"
+           onerror="this.src='https://via.placeholder.com/200x200/E8F5E9/388E3C?text=📷'">
+      <div class="media-item-overlay">
+        <div class="media-item-label">${m.Label || m.FileName || 'Photo'}</div>
+        <div style="font-size:11px;opacity:0.8;">${m.Category||''}</div>
+      </div>
+    </div>`
+  ).join('');
+}
+
+function openLightbox(mediaID) {
+  const m = STATE.media.find(x => x.MediaID === mediaID);
+  if (!m) return;
+  STATE.currentMediaID = mediaID;
+  document.getElementById('lightbox-title').textContent = m.Label || m.FileName || 'Photo';
+  document.getElementById('lightbox-img').src = m.ViewUrl || m.ThumbnailUrl || '';
+  document.getElementById('lightbox-label-input').value = m.Label || '';
+  openModal('modal-lightbox');
+}
+
+async function saveLightboxLabel() {
+  const id = STATE.currentMediaID;
+  const label = document.getElementById('lightbox-label-input').value.trim();
+  if (!id) return;
+  const m = STATE.media.find(x => x.MediaID === id);
+  if (m) m.Label = label;
+  document.getElementById('lightbox-title').textContent = label || 'Photo';
+  await asPost({ action: 'updateMediaLabel', mediaID: id, farmID: STATE.farm.FarmID, label });
+  closeModal('modal-lightbox');
+  loadMedia();
+  toast('Label saved!');
+}
+
+async function deleteLightboxMedia() {
+  if (!confirm('Delete this photo?')) return;
+  const id = STATE.currentMediaID;
+  STATE.media = STATE.media.filter(m => m.MediaID !== id);
+  await asPost({ action: 'deleteMedia', mediaID: id, farmID: STATE.farm.FarmID });
+  closeModal('modal-lightbox');
+  loadMedia();
+  toast('Photo deleted.', 'warning');
+}
+
+// Drag and drop for upload zone
+const zone = document.getElementById('upload-zone');
+if (zone) {
+  zone.addEventListener('dragover', e => { e.preventDefault(); zone.style.background = 'rgba(76,175,80,0.1)'; });
+  zone.addEventListener('dragleave', () => { zone.style.background = ''; });
+  zone.addEventListener('drop', e => { e.preventDefault(); zone.style.background = ''; handleFileUpload(e.dataTransfer.files); });
+}
+
+// ═══════════════════════════════════════════════════════════
+// ANALYTICS CHARTS
+// ═══════════════════════════════════════════════════════════
+function destroyChart(key) {
+  if (STATE.charts[key]) { STATE.charts[key].destroy(); delete STATE.charts[key]; }
+}
+
+function renderYieldChart(canvasID, months) {
+  destroyChart(canvasID);
+  const ctx = document.getElementById(canvasID);
+  if (!ctx) return;
+
+  // Build monthly yield from plotLogs
+  const now = new Date();
+  const labels = [];
+  const data = [];
+  for (let i = months-1; i >= 0; i--) {
+    const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+    const key = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`;
+    labels.push(d.toLocaleString('default', { month:'short', year:'2-digit' }));
+    const total = STATE.plotLogs.filter(l => l.LogDate && l.LogDate.startsWith(key)).reduce((s,l) => s + (Number(l.YieldKgToday)||0), 0);
+    data.push(total);
+  }
+
+  STATE.charts[canvasID] = new Chart(ctx, {
+    type: 'line',
+    data: {
+      labels,
+      datasets: [{ label: 'Yield (kg)', data, borderColor:'#4CAF50', backgroundColor:'rgba(76,175,80,0.1)', tension:0.4, fill:true, pointBackgroundColor:'#4CAF50', pointRadius:4 }]
+    },
+    options: { responsive:true, plugins:{ legend:{display:false} }, scales:{ y:{ beginAtZero:true } } }
+  });
+}
+
+function loadAnalytics() {
+  // Crop yield bar
+  destroyChart('chart-crop-bar');
+  const cropCtx = document.getElementById('chart-crop-bar');
+  if (cropCtx) {
+    const plotMap = {}; STATE.plots.forEach(p => plotMap[p.PlotID] = p.CropType);
+    const cropYield = {};
+    STATE.plotLogs.forEach(l => {
+      const crop = plotMap[l.PlotID] || 'Unknown';
+      cropYield[crop] = (cropYield[crop]||0) + (Number(l.YieldKgToday)||0);
+    });
+    const labels = Object.keys(cropYield);
+    const vals = Object.values(cropYield);
+    const colors = ['rgba(76,175,80,.7)','rgba(33,150,243,.7)','rgba(244,67,54,.7)','rgba(255,193,7,.7)','rgba(156,39,176,.7)','rgba(0,188,212,.7)'];
+    STATE.charts['chart-crop-bar'] = new Chart(cropCtx, {
+      type: 'bar',
+      data: { labels, datasets:[{ label:'Yield (kg)', data:vals, backgroundColor:labels.map((_,i)=>colors[i%colors.length]) }] },
+      options: { responsive:true, plugins:{legend:{display:false}} }
+    });
+  }
+
+  // Livestock line
+  destroyChart('chart-livestock-line');
+  const lsCtx = document.getElementById('chart-livestock-line');
+  if (lsCtx) {
+    const types = [...new Set(STATE.livestock.map(l => l.AnimalType))].slice(0,4);
+    const palette = ['#4CAF50','#2196F3','#FFC107','#F44336'];
+    STATE.charts['chart-livestock-line'] = new Chart(lsCtx, {
+      type: 'doughnut',
+      data: {
+        labels: types.length ? types : ['No data'],
+        datasets:[{ data: types.length ? types.map(t => STATE.livestock.filter(l=>l.AnimalType===t).reduce((s,l)=>s+(Number(l.Count)||0),0)) : [1],
+          backgroundColor: palette }]
+      },
+      options:{ responsive:true, plugins:{ legend:{ position:'right' } } }
+    });
+  }
+
+  // Egg production
+  destroyChart('chart-eggs');
+  const eggCtx = document.getElementById('chart-eggs');
+  if (eggCtx) {
+    const last30 = [...STATE.eggLogs].sort((a,b)=>a.LogDate>b.LogDate?1:-1).slice(-30);
+    STATE.charts['chart-eggs'] = new Chart(eggCtx, {
+      type: 'line',
+      data: {
+        labels: last30.map(l => l.LogDate?.substring(5)||''),
+        datasets:[{ label:'Eggs Collected', data:last30.map(l=>Number(l.EggsCollected)||0), borderColor:'#FFC107', backgroundColor:'rgba(255,193,7,0.1)', tension:0.3, fill:true }]
+      },
+      options:{ responsive:true, plugins:{legend:{display:false}}, scales:{y:{beginAtZero:true}} }
+    });
+  }
+
+  // Task status pie
+  destroyChart('chart-tasks-status');
+  const tCtx = document.getElementById('chart-tasks-status');
+  if (tCtx) {
+    const statuses = ['Pending','In Progress','Done','Cancelled'];
+    const counts = statuses.map(s => STATE.tasks.filter(t=>t.Status===s).length);
+    STATE.charts['chart-tasks-status'] = new Chart(tCtx, {
+      type: 'doughnut',
+      data: {
+        labels: statuses,
+        datasets:[{ data:counts, backgroundColor:['#FFC107','#2196F3','#4CAF50','#9E9E9E'] }]
+      },
+      options:{ responsive:true, plugins:{ legend:{ position:'right' } } }
+    });
+  }
+
+  // Main yield chart
+  renderYieldChart('chart-yield-main', 6);
+}
+
+function setChartPeriod(chartKey, period, btn) {
+  btn.closest('.chart-period-btns').querySelectorAll('button').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  const months = period === '12m' ? 12 : 6;
+  if (chartKey === 'yield') renderYieldChart('chart-dash-yield', months);
+  if (chartKey === 'yield-main') renderYieldChart('chart-yield-main', months);
+}
+
+// ═══════════════════════════════════════════════════════════
+// ACTIVITY LOG
+// ═══════════════════════════════════════════════════════════
+async function loadActivityLog() {
+  const logs = await osGet('ActivityLog');
+  const farmLogs = logs.filter(l => l.FarmID === STATE.farm?.FarmID)
+    .sort((a,b) => b.Timestamp > a.Timestamp ? 1 : -1).slice(0,50);
+  const feed = document.getElementById('activity-feed');
+  if (!farmLogs.length) { feed.innerHTML = '<div class="empty-state"><i class="fas fa-history"></i><h4>No activity yet</h4></div>'; return; }
+
+  const typeIcons = { CREATE:'fa-plus-circle', UPDATE:'fa-edit', DELETE:'fa-trash', LOGIN:'fa-sign-in-alt', SEED:'fa-seedling' };
+  feed.innerHTML = farmLogs.map(l => {
+    const cls = l.Action?.toLowerCase() || 'create';
+    const icon = typeIcons[l.Action] || 'fa-dot-circle';
+    const t = l.Timestamp ? new Date(l.Timestamp).toLocaleString('en-NG',{dateStyle:'medium',timeStyle:'short'}) : '';
+    return `<div class="activity-item">
+      <div class="activity-dot ${cls}"><i class="fas ${icon}"></i></div>
+      <div class="activity-text">
+        <div class="activity-desc">${l.Description||l.Action+' '+l.EntityType}</div>
+        <div class="activity-time">${t} · ${l.EntityType||''}</div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+// ═══════════════════════════════════════════════════════════
+// SETTINGS
+// ═══════════════════════════════════════════════════════════
+function loadSettings() {
+  if (STATE.user) {
+    document.getElementById('setting-name').value = STATE.user.DisplayName || '';
+    document.getElementById('setting-email').value = STATE.user.Email || '';
+    document.getElementById('setting-phone').value = STATE.user.Phone || '';
+  }
+  if (STATE.farm) {
+    document.getElementById('setting-farm-name').value = STATE.farm.FarmName || '';
+    document.getElementById('setting-farm-type').value = STATE.farm.FarmType || 'mixed';
+    document.getElementById('setting-farm-location').value = STATE.farm.Location || '';
+    document.getElementById('setting-lat').value = STATE.farm.Latitude || '';
+    document.getElementById('setting-lng').value = STATE.farm.Longitude || '';
+    document.getElementById('setting-farm-size').value = STATE.farm.SizeAcres || '';
+    document.getElementById('setting-farm-desc').value = STATE.farm.Description || '';
+  }
+}
+
+async function saveUserProfile() {
+  showLoading('Saving...');
+  const updates = {
+    DisplayName: document.getElementById('setting-name').value.trim(),
+    Phone: document.getElementById('setting-phone').value.trim(),
+  };
+  Object.assign(STATE.user, updates);
+  document.getElementById('sidebar-user-name').textContent = updates.DisplayName;
+  await asPost({ action: 'updateUser', userID: STATE.user.UserID, updates });
+  hideLoading(); toast('Profile saved!');
+}
+
+async function saveFarmDetails() {
+  showLoading('Saving...');
+  const updates = {
+    FarmName:    document.getElementById('setting-farm-name').value.trim(),
+    FarmType:    document.getElementById('setting-farm-type').value,
+    Location:    document.getElementById('setting-farm-location').value.trim(),
+    Latitude:    document.getElementById('setting-lat').value,
+    Longitude:   document.getElementById('setting-lng').value,
+    SizeAcres:   document.getElementById('setting-farm-size').value,
+    Description: document.getElementById('setting-farm-desc').value.trim(),
+    UpdatedAt:   new Date().toISOString()
+  };
+  Object.assign(STATE.farm, updates);
+  document.getElementById('sidebar-farm-name').textContent = updates.FarmName;
+  document.getElementById('sidebar-farm-type').textContent = updates.FarmType;
+  await asPost({ action: 'updateFarm', farmID: STATE.farm.FarmID, updates });
+  hideLoading(); toast('Farm details saved!');
+}
+
+async function savePreferences() {
+  showLoading('Saving...');
+  const currency = document.getElementById('setting-currency').value || '₦';
+  const dateFormat = document.getElementById('setting-date-format').value;
+  await asPost({ action: 'setSetting', farmID: STATE.farm.FarmID, key:'CurrencySymbol', value:currency, userID:STATE.user?.UserID });
+  await asPost({ action: 'setSetting', farmID: STATE.farm.FarmID, key:'DateFormat', value:dateFormat, userID:STATE.user?.UserID });
+  hideLoading(); toast('Preferences saved!');
+}
+
+function exportData(format) {
+  const farmData = {
+    farm: STATE.farm, user: STATE.user,
+    plots: STATE.plots, livestock: STATE.livestock, poultry: STATE.poultry, ponds: STATE.ponds,
+    tasks: STATE.tasks, events: STATE.events, media: STATE.media,
+    plotLogs: STATE.plotLogs, healthLogs: STATE.healthLogs, eggLogs: STATE.eggLogs, fishLogs: STATE.fishLogs
+  };
+  if (format === 'json') {
+    const blob = new Blob([JSON.stringify(farmData, null, 2)], { type:'application/json' });
+    download(blob, `FarmTrack_${STATE.farm?.FarmName||'Export'}_${today()}.json`);
+  } else {
+    // CSV — export plots as simple CSV
+    const rows = [['PlotName','CropType','SizeAcres','PlantingDate','Status','YieldKg']];
+    STATE.plots.forEach(p => rows.push([p.PlotName, p.CropType, p.SizeAcres, p.PlantingDate, p.Status, p.YieldKg]));
+    const csv = rows.map(r => r.map(c=>`"${c||''}"`).join(',')).join('\n');
+    const blob = new Blob([csv], { type:'text/csv' });
+    download(blob, `FarmTrack_Plots_${today()}.csv`);
+  }
+  toast('Export started!');
+}
+
+function download(blob, filename) {
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = filename;
+  a.click();
+}
+
+// ═══════════════════════════════════════════════════════════
+// DIAGNOSE
+// ═══════════════════════════════════════════════════════════
+async function runDiagnose() {
+  const output = document.getElementById('diagnose-output');
+  const status = document.getElementById('diag-status');
+  output.innerHTML = '<span class="info">⏳ Running diagnostics...</span>\n';
+  status.textContent = 'Running...';
+  status.style.color = 'var(--warning)';
+
+  const log = (type, msg) => { output.innerHTML += `<span class="${type}">${msg}</span>\n`; };
+  let errors = 0;
+
+  log('info', '═══ FarmTrack Pro Diagnostics ═══');
+  log('info', `Timestamp: ${new Date().toLocaleString()}`);
+  log('info', `Farm: ${STATE.farm?.FarmName || 'Not loaded'}`);
+  log('info', `User: ${STATE.user?.Email || 'Not logged in'}`);
+  log('info', '');
+
+  // 1. OpenSheet API checks
+  log('info', '── OpenSheet API (Read Access) ──');
+  const tabs = ['Users','Farms','Plots','PlotDailyLog','Livestock','LivestockHealthLog','Poultry','PoultryEggLog','FishPonds','FishFeedLog','Tasks','CalendarEvents','Media','FarmBoundary','ActivityLog','Settings'];
+  for (const tab of tabs) {
+    try {
+      const data = await osGet(tab);
+      log('ok', `  ✅ ${tab}: ${data.length} rows`);
+    } catch(e) {
+      log('fail', `  ❌ ${tab}: ${e.message}`);
+      errors++;
+    }
+  }
+
+  // 2. Apps Script
+  log('info', '');
+  log('info', '── Apps Script (Write Endpoint) ──');
+  try {
+    const r = await fetch(APPS_SCRIPT, { method:'POST', mode:'no-cors', headers:{'Content-Type':'application/json'}, body:JSON.stringify({ action:'diagnose' }) });
+    log('ok', '  ✅ Apps Script endpoint reachable (no-cors)');
+  } catch(e) {
+    log('fail', `  ❌ Apps Script: ${e.message}`);
+    errors++;
+  }
+
+  // 3. Weather API
+  log('info', '');
+  log('info', '── Weather API (OpenWeatherMap) ──');
+  try {
+    const r = await fetch(`https://api.openweathermap.org/data/2.5/weather?q=Lagos&appid=${WEATHER_KEY}&units=metric`);
+    if (r.ok) { const d = await r.json(); log('ok', `  ✅ Weather API OK — Lagos: ${Math.round(d.main.temp)}°C`); }
+    else { log('fail', `  ❌ Weather API: HTTP ${r.status}`); errors++; }
+  } catch(e) { log('fail', `  ❌ Weather API: ${e.message}`); errors++; }
+
+  // 4. State summary
+  log('info', '');
+  log('info', '── In-memory State ──');
+  log('ok', `  Plots: ${STATE.plots.length}`);
+  log('ok', `  Livestock groups: ${STATE.livestock.length}`);
+  log('ok', `  Poultry flocks: ${STATE.poultry.length}`);
+  log('ok', `  Fish ponds: ${STATE.ponds.length}`);
+  log('ok', `  Tasks: ${STATE.tasks.length}`);
+  log('ok', `  Calendar events: ${STATE.events.length}`);
+  log('ok', `  Media items: ${STATE.media.length}`);
+  log('ok', `  Boundaries: ${STATE.boundaries.length}`);
+  log('ok', `  Plot logs: ${STATE.plotLogs.length}`);
+  log('ok', `  Health logs: ${STATE.healthLogs.length}`);
+  log('ok', `  Egg logs: ${STATE.eggLogs.length}`);
+  log('ok', `  Fish logs: ${STATE.fishLogs.length}`);
+
+  // 5. Leaflet map
+  log('info', '');
+  log('info', '── Map (Leaflet) ──');
+  if (typeof L !== 'undefined') log('ok', `  ✅ Leaflet loaded v${L.version}`);
+  else { log('fail', '  ❌ Leaflet not available'); errors++; }
+  if (leafletMap) log('ok', '  ✅ Map instance active');
+  else log('warn', '  ⚠️  Map not yet initialised (navigate to Farm Map tab)');
+
+  // 6. Chart.js
+  log('info', '');
+  log('info', '── Chart.js ──');
+  if (typeof Chart !== 'undefined') log('ok', `  ✅ Chart.js loaded`);
+  else { log('fail', '  ❌ Chart.js not available'); errors++; }
+
+  // 7. Farm isolation check
+  log('info', '');
+  log('info', '── Farm Data Isolation ──');
+  const farmID = STATE.farm?.FarmID;
+  const allGood = [STATE.plots, STATE.livestock, STATE.poultry, STATE.ponds, STATE.tasks].every(arr => arr.every(r => r.FarmID === farmID));
+  if (allGood) log('ok', '  ✅ All data correctly scoped to current farm');
+  else { log('fail', '  ❌ Data isolation issue detected'); errors++; }
+
+  log('info', '');
+  log(errors===0?'ok':'fail', `═══ Diagnostics complete — ${errors} issue(s) found ═══`);
+
+  status.textContent = errors === 0 ? '✅ All systems OK' : `⚠️ ${errors} issue(s)`;
+  status.style.color = errors === 0 ? 'var(--primary)' : 'var(--danger)';
+}
+
+// ═══════════════════════════════════════════════════════════
+// INIT
+// ═══════════════════════════════════════════════════════════
+document.addEventListener('DOMContentLoaded', () => {
+  // Set today as default date for all date inputs
+  document.querySelectorAll('input[type="date"]').forEach(inp => { if (!inp.value) inp.value = today(); });
+
+  // Allow Enter key to login
+  document.getElementById('login-email').addEventListener('keydown', e => { if (e.key === 'Enter') handleLogin(); });
+});
+</script>
+</body>
+</html>
